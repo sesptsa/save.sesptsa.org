@@ -1,10 +1,10 @@
 :root {
   --paper: #f8f6ef;
   --ink: #1d2a21;
-  --green: #2f5a3a;
-  --green-deep: #22432b;
-  --moss: #6f8a3c;
+  --green: #007109;        /* August's artwork green */
+  --green-deep: #004f06;
   --rule: #cfd6c8;
+  --muted: #4a5a4e;
   --measure: 38rem;
 }
 
@@ -21,34 +21,35 @@ body {
 }
 
 a { color: var(--green); }
-a:focus-visible, .button:focus-visible { outline: 3px solid var(--moss); outline-offset: 3px; }
+a:focus-visible, .button:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
 
-.masthead, main, footer {
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Full-width green band; the artwork's own green dissolves into it */
+.masthead {
+  background: var(--green);
+  padding: clamp(1.5rem, 5vw, 3rem) 0;
+  text-align: center;
+}
+.masthead-art {
+  display: block;
+  width: min(20rem, 100% - 2.5rem);
+  height: auto;
+  margin: 0 auto;
+}
+
+main, footer {
   width: min(var(--measure), 100% - 2.5rem);
   margin-inline: auto;
 }
 
-.masthead {
-  padding-top: 3.5rem;
-  padding-bottom: 2rem;
-  border-bottom: 2px solid var(--green);
-}
-.masthead-from {
-  margin: 0 0 .25rem;
-  font-size: 1rem;
-  font-style: italic;
-  color: var(--green);
-}
-h1 {
-  margin: 0;
-  font-size: clamp(2rem, 1.2rem + 4vw, 3.25rem);
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.01em;
-  color: var(--green-deep);
-}
-
-main { padding-block: 2.5rem 3rem; }
+main { padding-block: 3rem; }
 
 h2 {
   margin: 0 0 1rem;
@@ -80,14 +81,14 @@ p:last-child { margin-bottom: 0; }
 .sign-note {
   margin-top: 1rem;
   font-size: 1rem;
-  color: #4a5a4e;
+  color: var(--muted);
 }
 
 footer {
   padding-block: 2rem 3rem;
   border-top: 1px solid var(--rule);
   font-size: .95rem;
-  color: #4a5a4e;
+  color: var(--muted);
 }
 
 @media (max-width: 480px) {
