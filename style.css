@@ -583,9 +583,11 @@ sup.cite a.is-open {
   }
 }
 .form-fallback {
-  margin: 1rem 0 0;
-  font-size: 0.9375rem;
-  color: var(--muted);
+  margin: 1.25rem 0 0;
+}
+.form-fallback a {
+  color: var(--ink);
+  font-weight: 700;
 }
 
 /* Side by side when there is room. The hero puts the artwork beside the title
@@ -630,23 +632,22 @@ sup.cite a.is-open {
 /* ---- Footer ------------------------------------------------------------- */
 .site-footer {
   background: var(--ink);
-  color: var(--paper);
+  color: var(--cream);
   padding: 2.5rem 0 3.5rem;
   font-size: 0.9375rem;
 }
 .footer-brand {
   font-size: 1.05rem;
-  color: var(--white);
   margin-bottom: 0.75rem;
 }
 .site-footer p:last-child {
   margin: 0;
 }
 .site-footer a {
-  color: var(--white);
+  color: inherit;
 }
 .site-footer a:hover {
-  color: var(--tint);
+  color: var(--white);
 }
 
 /* ---- Print: the letter and its references, nothing else ---------------- */
