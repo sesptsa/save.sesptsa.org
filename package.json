@@ -1,0 +1,16 @@
+{
+  "name": "save-sesptsa-org",
+  "private": true,
+  "description": "save.sesptsa.org: static site, served as-is by GitHub Pages. Vite is a dev server only; there is deliberately no build script.",
+  "scripts": {
+    "dev": "vite",
+    "lint": "oxlint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "oxlint": "^1.16.0",
+    "prettier": "^3.9.10",
+    "vite": "^6.4.4"
+  }
+}

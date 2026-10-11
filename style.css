@@ -1,96 +1,693 @@
+/* Save Sunnyside — one page: letter, references, signature form.
+   Tokens first; everything green on the page uses --green (August's artwork). */
+
 :root {
-  --paper: #f8f6ef;
-  --ink: #1d2a21;
-  --green: #007109;        /* August's artwork green */
-  --green-deep: #004f06;
-  --rule: #cfd6c8;
-  --muted: #4a5a4e;
-  --measure: 38rem;
+  --green: #007108;
+  --green-deep: #005a06;
+  --ink: #1e3a2f;
+  --muted: #3f5a4f;
+  --paper: #faf8f2;
+  --cream: #fbf6ea; /* the sign section's band */
+  --white: #ffffff;
+  --surface: var(--white);
+  --rule: #d8ded3;
+  --rule-heavy: 2px solid var(--ink); /* the section dividers */
+  --tint: #e9f2ea;
+  --measure: 40rem; /* letter column; also the form embed's natural width */
+  --wide: 72rem; /* header */
+  --gutter: 1.25rem;
+  --header-h: 3.5rem;
+  --font: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* Page titles are sized from the column so the longest word (ENVIRONMENTAL,
+     in the display style) always fits: column width / --title-scale. */
+  --title-scale: 12.05;
+
+  /* Side-by-side sign section (>= 1200px): intro column, gap, form column. */
+  --sign-intro: 24rem; /* fits "ADD YOUR" on one line at the title size */
+  --sign-gap: 3.5rem;
+  --sign-w: calc(var(--sign-intro) + var(--sign-gap) + var(--measure));
+
+  /* The Google Form cannot size its own cross-origin frame, so its height is
+     measured by hand: open the form URL at 350px and 640px wide and read
+     document.documentElement.scrollHeight; after a test submission, the same
+     for the confirmation page. Re-measure after any form edit. */
+  --form-h: 1280px;
+  --form-h-done: 660px;
 }
 
-* { box-sizing: border-box; }
+/* ---- Theme: the header and hero colourway. The default is ink on cream;
+   <html data-theme="green"> switches to cream on green. Everything below the
+   hero is the same in both. ---------------------------------------------- */
+:root {
+  --header-bg: color-mix(in srgb, var(--paper) 94%, transparent);
+  --header-fg: var(--ink);
+  --header-accent: var(--green); /* hover colour for the wordmark and nav */
+  --header-rule: var(--rule);
+  --hero-bg: var(--cream);
+  --hero-fg: var(--ink);
+  --hero-read: var(--muted); /* the "Read the letter" link */
+  --mast-button-bg: var(--green); /* the header's and hero's buttons */
+  --mast-button-fg: var(--white);
+  --mast-button-hover: var(--green-deep);
+  --mast-focus: var(--green);
+}
+:root[data-theme="green"] {
+  --header-bg: var(--green);
+  --header-fg: var(--paper);
+  --header-accent: var(--white);
+  --header-rule: color-mix(in srgb, var(--paper) 25%, var(--green));
+  --hero-bg: var(--green);
+  --hero-fg: var(--paper);
+  --hero-read: var(--paper);
+  --mast-button-bg: var(--paper);
+  --mast-button-fg: var(--green);
+  --mast-button-hover: var(--white);
+  --mast-focus: var(--paper);
+}
 
-html { background: var(--paper); color: var(--ink); }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
 
 body {
   margin: 0;
-  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  font-size: 1.125rem;
+  font-family: var(--font);
+  font-size: 1.0625rem;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+@media (min-width: 720px) {
+  body {
+    font-size: 1.125rem;
+  }
 }
 
-a { color: var(--green); }
-a:focus-visible, .button:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+a {
+  color: var(--green);
+  text-underline-offset: 0.15em;
+}
+a:hover {
+  color: var(--green-deep);
+}
+:focus-visible {
+  outline: 3px solid var(--focus, var(--green));
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+p {
+  margin: 0 0 1.1em;
+}
+
+/* The house display style: wide, heavy, caps. Echoes the logo's grotesque.
+   The letter's own headings get it by element so the generated markup
+   (tools/letter2html.py) needs no presentational classes. */
+.display,
+.letter h2,
+.salutation {
+  font-stretch: 125%;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
 
 .visually-hidden {
   position: absolute;
-  width: 1px; height: 1px;
-  margin: -1px; padding: 0;
-  overflow: hidden; clip: rect(0 0 0 0);
-  white-space: nowrap; border: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* Full-width green band; the artwork's own green dissolves into it */
-.masthead {
-  background: var(--green);
-  padding: clamp(1.5rem, 5vw, 3rem) 0;
-  text-align: center;
-}
-.masthead-art {
-  display: block;
-  width: min(20rem, 100% - 2.5rem);
-  height: auto;
-  margin: 0 auto;
-}
-
-main, footer {
-  width: min(var(--measure), 100% - 2.5rem);
+/* Content columns: --col-w sets a column's maximum width. */
+.col,
+.wide {
+  width: min(var(--col-w, var(--measure)), 100% - 2 * var(--gutter));
   margin-inline: auto;
 }
-
-main { padding-block: 3rem; }
-
-h2 {
-  margin: 0 0 1rem;
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--green-deep);
+.wide {
+  --col-w: var(--wide);
 }
-p { margin: 0 0 1rem; }
-p:last-child { margin-bottom: 0; }
 
-.notice { padding-bottom: 2.5rem; }
-
-.sign {
-  padding-top: 2.5rem;
-  border-top: 1px solid var(--rule);
-}
+/* ---- Buttons ------------------------------------------------------------ */
 .button {
   display: inline-block;
-  padding: .85em 1.6em;
+  padding: 0.8em 1.6em;
   background: var(--green);
-  color: #fff;
+  color: var(--white);
+  font-family: var(--font); /* a real <button class="button"> would not inherit it */
+  font-weight: 700;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  text-decoration: none;
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.button:hover {
+  background: var(--green-deep);
+  color: var(--white);
+}
+.button.small {
+  padding: 0.55em 1.1em;
+  font-size: 0.9375rem;
+}
+
+/* ---- Site header (always visible) --------------------------------------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--header-bg);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--header-rule);
+  --focus: var(--mast-focus);
+}
+.site-header .wide {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.brand {
+  font-size: clamp(0.9rem, 4vw, 1.05rem);
+  white-space: nowrap;
+  color: var(--header-fg);
+  text-decoration: none;
+  margin-right: auto;
+}
+.brand:hover {
+  color: var(--header-accent);
+}
+.site-nav {
+  display: none;
+  gap: 1.25rem;
+}
+.site-nav a {
+  color: var(--header-fg);
   text-decoration: none;
   font-weight: 600;
-  font-size: 1.125rem;
+  font-size: 1rem;
+}
+.site-nav a:hover {
+  color: var(--header-accent);
+  text-decoration: underline;
+}
+@media (min-width: 720px) {
+  .site-nav {
+    display: flex;
+  }
+}
+.site-header .button,
+.hero .button {
+  background: var(--mast-button-bg);
+  color: var(--mast-button-fg);
+}
+.site-header .button:hover,
+.hero .button:hover {
+  background: var(--mast-button-hover);
+  color: var(--mast-button-fg);
+}
+.site-header .button {
+  white-space: nowrap;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s;
+}
+.site-header.form-visible .button {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ---- Hero: the title and the artwork, in the theme's colourway ----------- */
+.hero {
+  background: var(--hero-bg);
+  color: var(--hero-fg);
+  padding: clamp(2rem, 6vw, 5rem) 0 clamp(2.5rem, 6vw, 5rem);
+  --focus: var(--mast-focus);
+}
+/* The artwork is a mask over the theme's text colour, so one file serves
+   every colourway. */
+.hero-art {
+  width: clamp(8rem, 36vw, 11rem);
+  aspect-ratio: 1;
+  margin-bottom: 2rem;
+  background: var(--hero-fg);
+  -webkit-mask: url(assets/save-ses-mask.svg) center / contain no-repeat;
+  mask: url(assets/save-ses-mask.svg) center / contain no-repeat;
+  print-color-adjust: exact;
+}
+/* Page titles: the hero h1 and "Add your name" share one size (see --title-scale). */
+.hero h1,
+.sign h2 {
+  font-size: calc(min(100vw - 2 * var(--gutter), var(--measure)) / var(--title-scale));
+  line-height: 0.95;
+  margin-bottom: 1rem;
+  text-wrap: balance;
+}
+.hero .lede {
+  font-size: 1.1em;
+  margin-bottom: 1.5rem;
+  max-width: 34em;
+}
+.hero .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin: 0;
+}
+.hero .actions .read {
+  color: var(--hero-read);
+  font-weight: 600;
+}
+
+/* ---- The letter --------------------------------------------------------- */
+.letter {
+  position: relative;
+  padding: 2.5rem 0 1rem;
+}
+.salutation {
+  font-size: clamp(1.3rem, 4.4vw, 1.75rem);
+  line-height: 1.05;
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.4rem;
+  border-bottom: var(--rule-heavy);
+}
+.letter h2 {
+  font-size: 1.1rem;
+  line-height: 1.25;
+  margin: 2.5rem 0 0.8rem;
+  color: var(--green-deep);
+}
+.letter-close {
+  margin-top: 2rem;
+}
+.letter-close .button {
+  margin-top: 0.5rem;
+}
+
+/* Citation markers: real superscripts that are also easy to tap. */
+sup.cite {
+  font-size: 0.7em;
+  line-height: 0;
+  vertical-align: super;
+}
+sup.cite a {
+  display: inline-block;
+  padding: 0.45em 0.35em;
+  margin: -0.45em -0.35em;
+  font-weight: 700;
+  text-decoration: none;
   border-radius: 4px;
 }
-.button:hover { background: var(--green-deep); }
-.sign-note {
-  margin-top: 1rem;
+sup.cite a:hover,
+sup.cite a.is-open {
+  background: var(--tint);
+  color: var(--green-deep);
+}
+
+/* ---- Supporting documents ---------------------------------------------- */
+.more {
+  margin: 1.5rem 0 0;
+  padding: 1rem 1.25rem;
+  background: var(--tint);
+  border-radius: 8px;
+  font-size: 0.95em;
+}
+.more p {
+  margin: 0;
+}
+.more p + p {
+  margin-top: 0.5em;
+}
+
+/* ---- References ---------------------------------------------------------- */
+.references {
+  margin-top: 2rem;
+  padding: 1.25rem 0 1.75rem;
+  border-top: var(--rule-heavy);
+}
+.references summary {
   font-size: 1rem;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.references summary::-webkit-details-marker {
+  display: none;
+}
+.references summary::before {
+  content: "";
+  width: 0.5em;
+  height: 0.5em;
+  border: solid var(--green);
+  border-width: 0 2px 2px 0;
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+  flex: none;
+}
+.references[open] summary::before {
+  transform: rotate(45deg);
+}
+.references summary .count {
+  color: var(--muted);
+  font-weight: 500;
+}
+.references-list {
+  margin: 1.25rem 0 0;
+  padding-left: 1.75rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.references-list li {
+  margin-bottom: 0.7em;
+}
+.references-list li:target {
+  background: var(--tint);
+  box-shadow: 0 0 0 0.4rem var(--tint);
+  border-radius: 2px;
+}
+.references-list a {
+  word-break: break-all;
+}
+.references-list .backref {
+  text-decoration: none;
+  margin-left: 0.25em;
+}
+
+/* ---- Citation popover (desktop, right margin) --------------------------- */
+.cite-pop {
+  display: none;
+  position: absolute;
+  left: calc(100% + 1.5rem);
+  top: 0;
+  width: min(19rem, calc((100vw - var(--measure)) / 2 - 3rem));
+  padding: 0.85rem 1rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 10%, transparent);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+  z-index: 10;
+}
+.cite-pop.is-open {
+  display: block;
+}
+.cite-label {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--green);
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cite-body .source {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--tint);
+  border-radius: 10px;
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+.cite-body .source:hover {
+  background: var(--rule);
+  color: var(--ink);
+}
+.cite-body .source svg {
+  flex: none;
+}
+.cite-pop:focus-visible,
+.sheet:focus-visible {
+  outline: none;
+}
+
+/* ---- Citation sheet (phones / touch) ------------------------------------ */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
+  z-index: 30;
+}
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 75vh;
+  overflow: auto;
+  padding: 0.6rem var(--gutter) calc(1.5rem + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -6px 30px color-mix(in srgb, var(--ink) 18%, transparent);
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--ink);
+  z-index: 31;
+}
+.sheet::before {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 0.3rem;
+  margin: 0 auto 1rem;
+  border-radius: 999px;
+  background: var(--rule);
+}
+.sheet-open .sheet-backdrop {
+  opacity: 1;
+  visibility: visible;
+}
+.sheet-open .sheet {
+  transform: translateY(0);
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.sheet-head .cite-label {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.sheet-close {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  margin: 0;
+  flex: none;
+  background: var(--tint);
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink);
+  cursor: pointer;
+}
+.sheet-close:hover {
+  background: var(--rule);
+}
+.sheet-all {
+  margin: 1.5rem 0 0;
+}
+.sheet-all a {
+  color: var(--ink);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header .button,
+  .sheet,
+  .sheet-backdrop {
+    transition: none;
+  }
+}
+
+/* ---- Sign --------------------------------------------------------------- */
+.sign {
+  background: var(--cream);
+  padding: 1.75rem 0 2.5rem;
+}
+.sign-inner {
+  padding-top: 2.5rem;
+  border-top: var(--rule-heavy);
+}
+.sign .lede {
+  margin-bottom: 1.25rem;
+}
+.form-frame {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.form-frame iframe {
+  display: block;
+  width: 100%;
+  height: var(--form-h);
+  border: 0;
+}
+.form-frame.is-submitted iframe {
+  height: var(--form-h-done); /* just the confirmation message, no blank tail */
+}
+@media (min-width: 720px) {
+  .form-frame {
+    --form-h: 1060px;
+    --form-h-done: 440px;
+  }
+}
+.form-fallback {
+  margin: 1rem 0 0;
+  font-size: 0.9375rem;
   color: var(--muted);
 }
 
-footer {
-  padding-block: 2rem 3rem;
-  border-top: 1px solid var(--rule);
-  font-size: .95rem;
-  color: var(--muted);
+/* Side by side when there is room. The hero puts the artwork beside the title
+   and the sign section puts the intro beside the form, on the same grid, so the
+   hero, the sign section and the footer share one content width.
+   Sign: intro on the left stays put while the form
+   scrolls. The content is exactly as wide as its two columns so its top rule
+   runs from the heading's left edge to the form's right edge; the footer
+   content lines up with it. (script.js switches citation popover vs. sheet at
+   the same 1200px; keep them together.) */
+@media (min-width: 1200px) {
+  .hero-inner,
+  .sign-inner,
+  .footer-inner {
+    --col-w: var(--sign-w);
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: var(--measure) minmax(16rem, var(--sign-intro));
+    justify-content: space-between;
+    column-gap: var(--sign-gap);
+    align-items: center;
+  }
+  .hero-art {
+    width: 100%;
+    margin: 0;
+    order: 2;
+  }
+  .sign-inner {
+    display: grid;
+    grid-template-columns: minmax(16rem, var(--sign-intro)) var(--measure);
+    justify-content: space-between;
+    column-gap: var(--sign-gap);
+    align-items: start;
+  }
+  .sign-intro {
+    position: sticky;
+    top: calc(var(--header-h) + 2rem);
+  }
 }
 
-@media (max-width: 480px) {
-  .button { display: block; text-align: center; }
+/* ---- Footer ------------------------------------------------------------- */
+.site-footer {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 2.5rem 0 3.5rem;
+  font-size: 0.9375rem;
+}
+.footer-brand {
+  font-size: 1.05rem;
+  color: var(--white);
+  margin-bottom: 0.75rem;
+}
+.site-footer p:last-child {
+  margin: 0;
+}
+.site-footer a {
+  color: var(--white);
+}
+.site-footer a:hover {
+  color: var(--tint);
+}
+
+/* ---- Print: the letter and its references, nothing else ---------------- */
+@media print {
+  html {
+    background: var(--white);
+  }
+  .site-header,
+  .hero .actions,
+  .letter-close .button,
+  .more,
+  .sign,
+  .sheet,
+  .sheet-backdrop,
+  .cite-pop,
+  .backref {
+    display: none !important;
+  }
+  .site-footer {
+    background: none;
+    color: var(--ink);
+  }
+  .site-footer a {
+    color: var(--ink);
+  }
+  .hero {
+    background: none;
+    color: var(--ink);
+  }
+  .hero-art {
+    width: 6rem;
+    background: var(--ink);
+  }
+  .col {
+    width: 100%;
+  }
+  .references summary::before {
+    display: none;
+  }
+  .references-list a {
+    color: var(--ink);
+    text-decoration: none;
+  }
 }

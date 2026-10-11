@@ -1,0 +1,4 @@
+# index.html holds the generated letter; reformatting it would churn every content update.
+/index.html
+package-lock.json
+assets/
