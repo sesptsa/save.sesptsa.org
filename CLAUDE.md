@@ -36,7 +36,8 @@ served by GitHub Pages at https://save.sesptsa.org.
   Google Apps Script web app on the form's responses spreadsheet; its source and
   setup steps are in `tools/signers-apps-script.js`. It serves only rows a
   volunteer has ticked ("Name ok", "Story ok", "Feature?"), so the data never
-  touches this repo. Feed text is public input: insert it with `textContent` only.
+  touches this repo. Names go out as "First L." until full names are approved
+  (`FULL_NAMES` in the script). Feed text is public input: insert it with `textContent` only.
 - `script.js` — see above.
 - `package.json`, `.oxlintrc.json`, `.prettierrc`, `.prettierignore` — dev tooling only.
 - `style.css` — tokens at the top. `--green: #007108` is August's artwork green;
@@ -46,7 +47,10 @@ served by GitHub Pages at https://save.sesptsa.org.
 - `assets/save-ses.svg` — vector artwork (converted from August's PDF; type is outlined),
   white on transparent. `assets/save-ses-mask.svg` — the same shapes in black, used as a
   CSS mask so the hero draws the artwork in the theme's colour. `assets/save-ses-ink.svg`
-  — recoloured to `--ink`, for the favicon. `assets/save-ses.jpg` — green, only `og:image`.
+  — recoloured to `--ink`, for the favicon. `assets/save-ses-share.jpg` — the
+  `og:image`: the artwork centred on 1200×630 green, rendered from the SVG.
+  `assets/save-ses.jpg` — the square green original, not used by the page (handy
+  for square social posts).
 - Theme: the header and hero colourway is a token set in `style.css` (`--header-*`,
   `--hero-*`, `--mast-*`). `<html data-theme="green">` is cream on green; without the
   attribute it is ink on cream. Nothing below the hero changes between them.

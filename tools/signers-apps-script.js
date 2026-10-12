@@ -11,7 +11,9 @@
  * someone signs (a prank inflates it until someone deletes the row). Names
  * are compared ignoring case, accents and spacing, so someone who signs twice
  * counts once and is listed once (the newer row) even if both are ticked; two
- * different people with the same name also count once. Each tab that holds
+ * different people with the same name also count once. Until full names are
+ * cleared for publishing, FULL_NAMES is false and the feed carries only
+ * "First L." (see shortName_), so full names never leave the sheet. Each tab that holds
  * signatures gets three checkbox columns (Signers menu > Add review columns
  * to this tab):
  *   Name ok   Real person, not a duplicate or a joke, and the connection line
@@ -57,6 +59,9 @@ var REVIEW_NOTES = {
     "or anything private.",
   "Feature?": "Put the story first.",
 };
+// false: names go out as "First L." (Jane Q. Public -> "Jane P."). Set to true,
+// save and deploy a new version once full names are approved.
+var FULL_NAMES = false;
 var CACHE_SECONDS = 300;
 var CHUNK = 30000; // characters per cache entry; the cache caps each entry at 100 KB
 
@@ -173,10 +178,10 @@ function buildFeed_(sheets) {
         return true;
       })
       .map(function (r) {
-        return { name: r.name, connection: r.connection };
+        return { name: shown_(r.name), connection: r.connection };
       }),
     stories: stories.map(function (r) {
-      return { name: r.name, connection: r.connection, story: r.story };
+      return { name: shown_(r.name), connection: r.connection, story: r.story };
     }),
   };
 }
@@ -217,6 +222,26 @@ function columns_(headers) {
 
 function ticked_(v) {
   return v === true || String(v).toUpperCase() === "TRUE";
+}
+
+function shown_(name) {
+  return FULL_NAMES ? name : shortName_(name);
+}
+
+// "Jane Q. Public" -> "Jane P."; "jane smith-jones jr." -> "jane S.";
+// "Cher" -> "Cher". First word as typed, plus the first letter of the last
+// word that isn't a suffix. Repeats are still found from the full name.
+function shortName_(name) {
+  var words = name.split(" ");
+  while (
+    words.length > 2 &&
+    /^(jr|sr|ii|iii|iv|v|phd|md|esq)\.?,?$/i.test(words[words.length - 1])
+  ) {
+    words.pop();
+  }
+  if (words.length < 2) return name;
+  var initial = words[words.length - 1].match(/\p{L}/u);
+  return words[0].replace(/,$/, "") + (initial ? " " + initial[0].toUpperCase() + "." : "");
 }
 
 // Who a name refers to, for spotting repeats: "  José  Smith" = "jose smith".
