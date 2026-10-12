@@ -660,16 +660,18 @@ sup.cite a.is-open {
 }
 .undersigned-count {
   font-size: 1.1em;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.35rem;
 }
-.undersigned-note,
+/* A footnote to the count, so quieter than the other notes. */
+.undersigned-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
 .part-head p,
 .undersigned-fix {
   color: var(--muted);
   font-size: 0.9375rem;
-}
-.undersigned-note {
-  margin: 0;
 }
 .undersigned h3 {
   font-size: 1.1rem;
@@ -856,15 +858,6 @@ sup.cite a.is-open {
   .undersigned-inner,
   .footer-inner {
     --col-w: var(--sign-w);
-  }
-  .undersigned-head {
-    display: grid;
-    grid-template-columns: 1fr minmax(14rem, 18rem); /* room for the title on one line */
-    column-gap: var(--sign-gap);
-    align-items: end;
-  }
-  .undersigned-head .undersigned-count {
-    margin: 0;
   }
   .hero-inner {
     display: grid;
