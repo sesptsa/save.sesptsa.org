@@ -194,7 +194,7 @@ ref_html = ["<ol class=\"references-list\">"]
 for n, s in refs:
     ref_html.append(
         f'  <li id="ref-{n}"><span class="ref-body">{s}</span> '
-        f'<a class="backref" href="#cite-{n}" aria-label="Back to citation {n} in the letter">↩</a></li>'
+        f'<a class="backref" href="#cite-{n}" aria-label="Back to citation {n} in the letter">↩&#xFE0E;</a></li>'
     )
 ref_html.append("</ol>")
 

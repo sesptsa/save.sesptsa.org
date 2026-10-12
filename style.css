@@ -478,7 +478,7 @@ sup.cite a.is-open {
   bottom: 0;
   max-height: 75vh;
   overflow: auto;
-  padding: 0.6rem var(--gutter) calc(1.5rem + env(safe-area-inset-bottom));
+  padding: var(--gutter) var(--gutter) calc(1.5rem + env(safe-area-inset-bottom));
   background: var(--surface);
   border-radius: 20px 20px 0 0;
   box-shadow: 0 -6px 30px color-mix(in srgb, var(--ink) 18%, transparent);
@@ -488,15 +488,6 @@ sup.cite a.is-open {
   line-height: 1.5;
   color: var(--ink);
   z-index: 31;
-}
-.sheet::before {
-  content: "";
-  display: block;
-  width: 2.5rem;
-  height: 0.3rem;
-  margin: 0 auto 1rem;
-  border-radius: 999px;
-  background: var(--rule);
 }
 .sheet-open .sheet-backdrop {
   opacity: 1;
