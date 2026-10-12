@@ -1,36 +1,36 @@
-# save.sesptsa.org
+# save sunnyside
 
-Community letter and signature campaign to keep Sunnyside Environmental
-School a K-8 with its environmental focus program intact.
+the website at **[save.sesptsa.org](https://save.sesptsa.org)**: the sunnyside
+environmental school PTSA's community letter to the portland school board, asking
+that SES stay a K–8 with its environmental focus program. to add your name, sign
+on the site.
 
-Live at https://save.sesptsa.org — a static site served by GitHub Pages.
+## how it works
 
-## Structure
+- static page served by github pages. whatever is on `main` is live within a
+  minute or two.
+- the letter lives in a google doc and gets converted to HTML w
+  `tools/letter2html.py`.
+- signatures go to a google form owned by the PTSA and are never stored in this
+  repo. the count and signers list on the page come from a google apps script
+  (`tools/signers-apps-script.js`) that publishes only what PTSA volunteers
+  have okayed to show. the repo is public, the names aren't, and that split is
+  on purpose.
 
-- `index.html` — the letter, references, embedded signature form, and the signers list
-- `sign/index.html` — redirect to the Google Form (so `/sign` is a stable link)
-- `style.css`, `script.js` — styles and the small script for citation popovers
-- `tools/letter2html.py` — regenerates the letter and references from the Google Docs export
-- `tools/signers-apps-script.js` — the Google Apps Script behind the signers list
-  (approved names and stories as JSON); setup steps at the top
+## contributing
 
-No build step: GitHub Pages serves these files exactly as committed. Edit, commit to
-`main`, and it deploys within a minute.
+- **ideas, corrections, stories, or removing your name:** email
+  [advocacy@sesptsa.org](mailto:advocacy@sesptsa.org). the wording of the letter
+  and the site goes thru the PTSA's communications group.
+- **bugs and technical fixes:** open an issue or a pull request. small, focused
+  changes are easiest to review. pull requests that change wording get passed to
+  the communications group before merging.
 
-## Local development
+## running it locally
 
 ```
 npm install
-npm run dev        # Vite dev server with live reload (dev server only; there is no build)
-npm run lint       # Oxlint
-npm run format     # Prettier (index.html is excluded: the letter markup is generated)
+npm run dev      # local server with live reload
+npm run lint     # Oxlint
+npm run format   # Prettier (skips index.html; the letter markup is generated)
 ```
-
-Rule: never add a build script to `package.json`. The committed files are the site.
-
-## Contributing
-
-This site reflects the Save Sunnyside communications plan. Content changes
-go through the communications group before they're published.
-
-Code is MIT-licensed. Site content is © Sunnyside Environmental School PTSA.
