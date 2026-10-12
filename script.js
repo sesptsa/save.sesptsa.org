@@ -180,6 +180,7 @@
   // Until it loads (or if it never does) the section and the hero count stay
   // hidden.
   var undersigned = document.getElementById("undersigned");
+  var heroCount = document.querySelector(".hero .signed-count");
   var STORY_CUT = 280; // longer stories show this much, then "Read more"
   var wide = window.matchMedia("(min-width: 560px)").matches;
 
@@ -189,10 +190,15 @@
         if (!res.ok) throw new Error("Signers feed: HTTP " + res.status);
         return res.json();
       })
-      .then(showSigners)
+      .then(function (feed) {
+        if (!showSigners(feed)) heroCount.hidden = true;
+      })
       .catch(function (err) {
+        heroCount.hidden = true;
         console.warn(err);
       });
+  } else {
+    heroCount.hidden = true;
   }
 
   function el(tag, className, text) {
@@ -260,11 +266,12 @@
     li.focus();
   }
 
+  // Returns whether there was anything to show.
   function showSigners(feed) {
     var names = (feed && feed.names) || [];
     var stories = (feed && feed.stories) || [];
     // The count is every signature; names and stories only the approved ones.
-    if (!(feed && feed.count > 0)) return;
+    if (!(feed && feed.count > 0)) return false;
     var count = feed.count.toLocaleString("en-US");
 
     document
@@ -272,7 +279,7 @@
       .forEach(function (n) {
         n.textContent = count;
       });
-    document.querySelector(".hero .signed-count").classList.add("is-ready");
+    heroCount.classList.add("is-ready");
     undersigned.hidden = false;
 
     // Stories: featured first (the feed's order), a few at a time.
@@ -297,7 +304,7 @@
 
     // Names: newest first, the first few until "Show all"; typing in "Find a
     // name" searches all of them, ignoring case and accents.
-    if (!names.length) return;
+    if (!names.length) return true;
     undersigned.querySelector(".names").hidden = false;
     var nameList = undersigned.querySelector(".name-list");
     var status = undersigned.querySelector(".names-status");
@@ -342,5 +349,6 @@
       expanded = true;
       focusItem(update()[first]);
     });
+    return true;
   }
 })();

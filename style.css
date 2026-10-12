@@ -46,7 +46,6 @@
   --header-rule: var(--rule);
   --hero-bg: var(--cream);
   --hero-fg: var(--ink);
-  --hero-read: var(--muted); /* the "Read the letter" link */
   --mast-button-bg: var(--green); /* the header's and hero's buttons */
   --mast-button-fg: var(--white);
   --mast-button-hover: var(--green-deep);
@@ -59,7 +58,6 @@
   --header-rule: color-mix(in srgb, var(--paper) 25%, var(--green));
   --hero-bg: var(--green);
   --hero-fg: var(--paper);
-  --hero-read: var(--paper);
   --mast-button-bg: var(--paper);
   --mast-button-fg: var(--green);
   --mast-button-hover: var(--white);
@@ -293,28 +291,68 @@ p {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1rem 1.5rem;
+  gap: 1rem;
   margin: 0;
 }
-.hero .actions .read {
-  color: var(--hero-read);
-  font-weight: 600;
+/* Phones: tighter, so the count and the button share one row down to 360px. */
+.hero .actions .button {
+  padding-inline: 1.2em;
 }
-/* The running signature count. It holds its line while the feed loads so the
-   page doesn't shift, and stays blank if the feed never arrives. */
-.hero .signed-count {
-  min-height: 1.6em;
-  margin: 1.25rem 0 0;
+@media (min-width: 420px) {
+  .hero .actions {
+    gap: 1rem 1.5rem;
+  }
+  .hero .actions .button {
+    padding-inline: 1.6em;
+  }
 }
-.hero .signed-count:not(.is-ready) {
+/* The running signature count, ruled off from "Add my name". While the feed
+   loads it keeps roughly its space so the button doesn't jump; script.js
+   removes it if the feed never arrives. */
+.signed-count {
+  display: flex;
+  flex-direction: column;
+  padding-right: 1rem;
+  border-right: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  color: var(--hero-fg);
+  text-decoration: none;
+  line-height: 1;
+}
+.signed-count:hover {
+  color: var(--hero-fg);
+}
+.signed-count:hover span {
+  text-decoration: underline;
+}
+.signed-count:not(.is-ready) {
   visibility: hidden;
 }
-.hero .signed-count a {
-  color: var(--hero-read);
-  font-weight: 600;
+@media (min-width: 420px) {
+  .signed-count {
+    padding-right: 1.5rem;
+  }
+  .signed-count span {
+    font-size: 0.9375rem;
+  }
 }
-.hero .signed-count strong {
-  font-weight: 800;
+.signed-count[hidden] {
+  display: none;
+}
+.signed-count strong {
+  min-height: 1em;
+  font-size: clamp(2rem, 9vw, 3rem);
+  font-stretch: 125%;
+  font-weight: 850;
+  letter-spacing: 0.01em;
+}
+.signed-count:not(.is-ready) strong {
+  min-width: 4.5ch;
+}
+.signed-count span {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 /* ---- The letter --------------------------------------------------------- */
@@ -886,7 +924,6 @@ sup.cite a.is-open {
   .more,
   .sign,
   .undersigned,
-  .hero .signed-count,
   .sheet,
   .sheet-backdrop,
   .cite-pop,
