@@ -175,30 +175,50 @@
 
   /* ---- The undersigned ------------------------------------------------ */
   // The feed is a Google Apps Script web app (tools/signers-apps-script.js)
-  // serving only the names and stories PTSA volunteers have approved. All of
-  // it is text typed by the public, so it only ever goes in via textContent.
-  // Until it loads (or if it never does) the section and the hero count stay
-  // hidden.
+  // serving only the names and stories PTSA volunteers have approved, plus the
+  // count. All of it is text typed by the public, so it only ever goes in via
+  // textContent. It takes a second or more, so the request is preloaded from
+  // <head>, and the hero shows a floor ("200+") or this visitor's last-seen
+  // count meanwhile. The section stays hidden until the feed loads.
   var undersigned = document.getElementById("undersigned");
   var heroCount = document.querySelector(".hero .signed-count");
+  var heroValue = heroCount.querySelector(".count-value");
+  var feedLink = document.getElementById("signers-feed");
+  var COUNT_KEY = "save-ses:signed-count";
   var STORY_CUT = 280; // longer stories show this much, then "Read more"
   var wide = window.matchMedia("(min-width: 560px)").matches;
 
-  if (undersigned.dataset.feed) {
-    fetch(undersigned.dataset.feed)
+  // Storage can be unavailable (private mode, blocked site data); the floor
+  // then just stays until the feed answers.
+  try {
+    var seen = Number(localStorage.getItem(COUNT_KEY));
+    if (seen > parseInt(heroValue.textContent, 10))
+      heroValue.textContent = seen.toLocaleString("en-US");
+  } catch (err) {
+    // keep the floor
+  }
+
+  if (feedLink) {
+    // Same URL and CORS mode as the preload, so the browser reuses that request.
+    fetch(feedLink.href)
       .then(function (res) {
         if (!res.ok) throw new Error("Signers feed: HTTP " + res.status);
         return res.json();
       })
       .then(function (feed) {
-        if (!showSigners(feed)) heroCount.hidden = true;
+        if (!showSigners(feed)) noSection();
       })
       .catch(function (err) {
-        heroCount.hidden = true;
+        noSection();
         console.warn(err);
       });
   } else {
-    heroCount.hidden = true;
+    noSection();
+  }
+
+  // Without the section the count keeps its floor but links nowhere.
+  function noSection() {
+    heroCount.removeAttribute("href");
   }
 
   function el(tag, className, text) {
@@ -274,12 +294,13 @@
     if (!(feed && feed.count > 0)) return false;
     var count = feed.count.toLocaleString("en-US");
 
-    document
-      .querySelectorAll(".signed-count strong, .undersigned-count strong")
-      .forEach(function (n) {
-        n.textContent = count;
-      });
-    heroCount.classList.add("is-ready");
+    heroValue.textContent = count;
+    undersigned.querySelector(".undersigned-count strong").textContent = count;
+    try {
+      localStorage.setItem(COUNT_KEY, String(feed.count));
+    } catch (err) {
+      // fine: next visit starts from the floor
+    }
     undersigned.hidden = false;
 
     // Stories: featured first (the feed's order), a few at a time.

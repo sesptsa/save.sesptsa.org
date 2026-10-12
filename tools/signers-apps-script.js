@@ -38,7 +38,7 @@
  *      columns to this tab.
  *   4. In Apps Script: Deploy > New deployment > Web app. Execute as: Me.
  *      Who has access: Anyone. Authorize, then copy the web app URL (ends in
- *      /exec) into the data-feed attribute of #undersigned in index.html.
+ *      /exec) into the href of <link id="signers-feed"> in index.html.
  *   5. Open the URL in a browser to check the JSON.
  * Updating the code later: paste it in, save, then Deploy > Manage deployments
  * > edit (pencil) > Version: New version > Deploy. That keeps the same URL;

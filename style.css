@@ -306,11 +306,12 @@ p {
     padding-inline: 1.6em;
   }
 }
-/* The running signature count, ruled off from "Add my name". While the feed
-   loads, a hidden "000" placeholder (index.html) holds its space; with
-   tabular figures every 3-digit count is exactly that wide, so the button
-   doesn't move when the number arrives (once the count passes 999, make the
-   placeholder "0,000"). script.js removes it if the feed never does. */
+/* The running signature count, ruled off from "Add my name". It shows a
+   floor ("200+", in index.html) at once, then the visitor's last-seen count,
+   then the live one when the feed answers. The hidden .count-sizer keeps the
+   floor's width, and with tabular figures any 3-digit count is narrower, so the
+   button never moves. Raise the floor in both spans as the count grows (keep
+   it at or below the real count; past 999 the sizer must be "1,000+"). */
 .signed-count {
   display: flex;
   flex-direction: column;
@@ -323,31 +324,32 @@ p {
 .signed-count:hover {
   color: var(--hero-fg);
 }
-.signed-count:hover span {
+.signed-count:hover .count-label {
   text-decoration: underline;
-}
-.signed-count:not(.is-ready) {
-  visibility: hidden;
 }
 @media (min-width: 420px) {
   .signed-count {
     padding-right: 1.5rem;
   }
-  .signed-count span {
+  .count-label {
     font-size: 0.9375rem;
   }
 }
-.signed-count[hidden] {
-  display: none;
-}
 .signed-count strong {
+  display: grid; /* the value and the sizer share one cell */
   font-size: clamp(2rem, 9vw, 3rem);
   font-stretch: 125%;
   font-weight: 850;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
 }
-.signed-count span {
+.signed-count strong > span {
+  grid-area: 1 / 1;
+}
+.count-sizer {
+  visibility: hidden;
+}
+.count-label {
   margin-top: 0.35rem;
   font-size: 0.875rem;
   font-weight: 700;

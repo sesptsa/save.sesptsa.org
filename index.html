@@ -45,6 +45,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,100..125,400..900;1,100,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- The signers feed (tools/signers-apps-script.js). Apps Script takes a second
+       or more to answer, so the request starts here, while the page loads;
+       script.js picks it up by this id. -->
+  <link rel="preload" id="signers-feed" href="https://script.google.com/macros/s/AKfycbwg4P6pawlo5aMSITj7oFOV_Tt8ZWZUgIP8wA8VgB1C7SmMHEt-LmYx2IngZb3M070/exec" as="fetch" crossorigin>
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 </head>
 <body>
   <header class="site-header">
@@ -66,7 +71,7 @@
           <h1 class="display">Keep Sunnyside <span class="nowrap">K–8</span> and environmental</h1>
           <p class="lede">Sunnyside Environmental School is one of only 12 schools in PPS with growing enrollment, but the District wants to dismantle what makes us thrive: our K-8 setting and environmental focus option curriculum.</p>
           <p class="actions">
-            <a class="signed-count" href="#undersigned"><strong>000</strong> <span>people have signed</span></a>
+            <a class="signed-count" href="#undersigned"><strong><span class="count-value">200+</span><span class="count-sizer" aria-hidden="true">200+</span></strong> <span class="count-label">people have signed</span></a>
             <a class="button" href="#sign">Add my name</a>
           </p>
         </div>
@@ -162,9 +167,9 @@
       </div>
     </section>
 
-    <!-- Filled by script.js from the signers feed (tools/signers-apps-script.js);
+    <!-- Filled by script.js from the signers feed (see the preload in <head>);
          stays hidden until the feed loads. -->
-    <section class="undersigned" id="undersigned" data-feed="https://script.google.com/macros/s/AKfycbwg4P6pawlo5aMSITj7oFOV_Tt8ZWZUgIP8wA8VgB1C7SmMHEt-LmYx2IngZb3M070/exec" aria-labelledby="undersigned-title" hidden>
+    <section class="undersigned" id="undersigned" aria-labelledby="undersigned-title" hidden>
       <div class="col undersigned-inner">
         <div class="undersigned-head">
           <h2 class="display" id="undersigned-title">The undersigned</h2>
