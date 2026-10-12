@@ -178,6 +178,16 @@ p {
   padding: 0.55em 1.1em;
   font-size: 0.9375rem;
 }
+/* Secondary actions ("More stories"): ink outline, so green stays for signing. */
+.button.outline {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.button.outline:hover {
+  background: var(--tint);
+  color: var(--ink);
+}
 
 /* ---- Site header (always visible) --------------------------------------- */
 .site-header {
@@ -264,9 +274,11 @@ p {
   mask: url(assets/save-ses-mask.svg) center / contain no-repeat;
   print-color-adjust: exact;
 }
-/* Page titles: the hero h1 and "Add your name" share one size (see --title-scale). */
+/* Page titles: the hero h1, "Sign the letter" and "The undersigned" share one
+   size (see --title-scale). */
 .hero h1,
-.sign h2 {
+.sign h2,
+.undersigned h2 {
   font-size: calc(min(100vw - 2 * var(--gutter), var(--measure)) / var(--title-scale));
   line-height: 0.95;
   margin-bottom: 1rem;
@@ -287,6 +299,22 @@ p {
 .hero .actions .read {
   color: var(--hero-read);
   font-weight: 600;
+}
+/* The running signature count. It holds its line while the feed loads so the
+   page doesn't shift, and stays blank if the feed never arrives. */
+.hero .signed-count {
+  min-height: 1.6em;
+  margin: 1.25rem 0 0;
+}
+.hero .signed-count:not(.is-ready) {
+  visibility: hidden;
+}
+.hero .signed-count a {
+  color: var(--hero-read);
+  font-weight: 600;
+}
+.hero .signed-count strong {
+  font-weight: 800;
 }
 
 /* ---- The letter --------------------------------------------------------- */
@@ -581,6 +609,202 @@ sup.cite a.is-open {
   font-weight: 700;
 }
 
+/* ---- The undersigned: approved names and stories from the signers feed --- */
+.undersigned {
+  background: var(--cream); /* continues the sign section's band */
+  padding: 0 0 3rem;
+}
+.undersigned-inner {
+  padding-top: 2.5rem;
+  border-top: var(--rule-heavy);
+}
+.undersigned-head {
+  margin-bottom: 2.5rem;
+}
+.undersigned-count {
+  font-size: 1.1em;
+  margin: 0 0 0.75rem;
+}
+.undersigned-note,
+.part-head p,
+.undersigned-fix {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+.undersigned-note {
+  margin: 0;
+}
+.undersigned h3 {
+  font-size: 1.1rem;
+  line-height: 1.25;
+  margin: 0 0 0.4rem;
+}
+.part-head {
+  margin-bottom: 1.25rem;
+}
+.part-head p {
+  margin: 0;
+}
+.story-list,
+.name-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.more-button {
+  margin: 1.5rem 0 0;
+  text-align: center;
+}
+.more-button .button {
+  width: 100%;
+}
+@media (min-width: 560px) {
+  .more-button .button {
+    width: auto;
+  }
+}
+
+/* Stories: cards in as many columns as fit, each as tall as its text. */
+.stories {
+  margin-bottom: 3rem;
+}
+.story-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+.story {
+  margin: 0;
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+.story .quote-mark {
+  display: block;
+  height: 1.5rem;
+  font-size: 2.75rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--green);
+}
+.story blockquote {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-line; /* keep the writer's line breaks */
+  overflow-wrap: anywhere;
+}
+.read-more {
+  appearance: none;
+  display: block;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+.read-more:hover {
+  color: var(--green-deep);
+}
+.story figcaption {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+.signer-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.signer-connection {
+  display: block;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* Names: one per row with the connection on the right on phones; a grid of
+   name-over-connection where there is room. */
+.part-head .find {
+  margin: 1.25rem 0 0;
+}
+.find label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+.find input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.9rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--muted);
+  border-radius: 0.5rem;
+}
+.name-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.35;
+}
+.name-list .signer-name {
+  max-width: 60%; /* a long connection wraps rather than squeezing the name */
+}
+.name-list .signer-connection {
+  flex: 1 1 0;
+  text-align: right;
+}
+@media (min-width: 560px) {
+  .name-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    column-gap: 2rem;
+  }
+  .name-list li {
+    display: block;
+    padding: 0.8rem 0;
+  }
+  .name-list .signer-name {
+    max-width: none;
+  }
+  .name-list .signer-connection {
+    text-align: left;
+    margin-top: 0.15rem;
+  }
+}
+@media (min-width: 720px) {
+  .part-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+  }
+  .part-head .find {
+    margin: 0;
+    width: min(100%, 20rem);
+  }
+}
+.undersigned-fix {
+  margin: 2.5rem 0 0;
+}
+
 /* Side by side when there is room. The hero puts the artwork beside the title
    and the sign section puts the intro beside the form, on the same grid, so the
    hero, the sign section and the footer share one content width.
@@ -592,8 +816,18 @@ sup.cite a.is-open {
 @media (min-width: 1200px) {
   .hero-inner,
   .sign-inner,
+  .undersigned-inner,
   .footer-inner {
     --col-w: var(--sign-w);
+  }
+  .undersigned-head {
+    display: grid;
+    grid-template-columns: 1fr minmax(14rem, 18rem); /* room for the title on one line */
+    column-gap: var(--sign-gap);
+    align-items: end;
+  }
+  .undersigned-head .undersigned-count {
+    margin: 0;
   }
   .hero-inner {
     display: grid;
@@ -651,6 +885,8 @@ sup.cite a.is-open {
   .letter-close .button,
   .more,
   .sign,
+  .undersigned,
+  .hero .signed-count,
   .sheet,
   .sheet-backdrop,
   .cite-pop,

@@ -6,7 +6,7 @@ served by GitHub Pages at https://save.sesptsa.org.
 ## Stack
 
 - Plain HTML/CSS plus one small vanilla script (`script.js`: sticky bar, citation
-  popovers/sheet, form-submit scroll). No framework. Keep it that way.
+  popovers/sheet, form-submit scroll, the signers list). No framework. Keep it that way.
 - Pages serves the files exactly as committed. `package.json` holds dev tooling only
   (`npm run dev` = Vite dev server, `npm run lint` = Oxlint, `npm run format` =
   Prettier). **Never add a build script**: nothing may depend on a transform step,
@@ -26,6 +26,13 @@ served by GitHub Pages at https://save.sesptsa.org.
   Docs export of the FINAL tab by `tools/letter2html.py` (its docstring has the
   update steps); citation markers are `<sup class="cite">` linking to `#ref-N`, and
   the popovers and the reference count read from the references list.
+- `#undersigned` in `index.html` — the signers section after the form, and the
+  count line in the hero. Both are filled by `script.js` from the JSON feed whose URL
+  is in the section's `data-feed`, and stay hidden until it loads. The feed is a
+  Google Apps Script web app on the form's responses spreadsheet; its source and
+  setup steps are in `tools/signers-apps-script.js`. It serves only rows a
+  volunteer has ticked ("Name ok", "Story ok", "Feature?"), so the data never
+  touches this repo. Feed text is public input: insert it with `textContent` only.
 - `script.js` — see above.
 - `package.json`, `.oxlintrc.json`, `.prettierrc`, `.prettierignore` — dev tooling only.
 - `style.css` — tokens at the top. `--green: #007108` is August's artwork green;

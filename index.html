@@ -24,7 +24,7 @@
 
 
 
-  pull requests welcome: ttps://github.com/sesptsa/save.sesptsa.org
+  pull requests welcome: https://github.com/sesptsa/save.sesptsa.org
 
 -->
 <html lang="en" data-theme="green">
@@ -69,6 +69,7 @@
             <a class="button" href="#sign">Add my name</a>
             <a class="read" href="#letter">Read the letter</a>
           </p>
+          <p class="signed-count"><a href="#undersigned"><strong></strong> people have signed so far</a></p>
         </div>
       </div>
     </section>
@@ -159,6 +160,43 @@
         </div>
         <p class="form-fallback"><a href="/sign/" target="_blank" rel="noopener">Form not loading? Open it in a new tab ↗&#xFE0E;</a></p>
       </div>
+      </div>
+    </section>
+
+    <!-- Filled by script.js from the signers feed (tools/signers-apps-script.js);
+         stays hidden until the feed loads. -->
+    <section class="undersigned" id="undersigned" data-feed="https://script.google.com/macros/s/AKfycbwg4P6pawlo5aMSITj7oFOV_Tt8ZWZUgIP8wA8VgB1C7SmMHEt-LmYx2IngZb3M070/exec" aria-labelledby="undersigned-title" hidden>
+      <div class="col undersigned-inner">
+        <div class="undersigned-head">
+          <div>
+            <h2 class="display" id="undersigned-title">The undersigned</h2>
+            <p class="undersigned-count"><strong></strong> people have signed the letter so far.</p>
+          </div>
+          <p class="undersigned-note">Names appear after a quick check by PTSA volunteers, usually within a day.</p>
+        </div>
+
+        <div class="stories" hidden>
+          <div class="part-head">
+            <h3 class="display">In their own words</h3>
+            <p>Answers to &ldquo;What impact has Sunnyside had on you?&rdquo;</p>
+          </div>
+          <ul class="story-list"></ul>
+          <p class="more-button"><button class="button outline" type="button">More stories</button></p>
+        </div>
+
+        <div class="names" hidden>
+          <div class="part-head">
+            <div>
+              <h3 class="display">Everyone who&rsquo;s signed</h3>
+              <p class="names-status" role="status">Newest first</p>
+            </div>
+            <p class="find"><label for="find-name">Find a name</label> <input id="find-name" type="search" placeholder="Type a name" autocomplete="off" spellcheck="false"></p>
+          </div>
+          <ul class="name-list"></ul>
+          <p class="more-button"><button class="button outline" type="button">Show all names</button></p>
+        </div>
+
+        <p class="undersigned-fix">See a mistake, or want your name or answer removed? Email <a href="mailto:advocacy@sesptsa.org">advocacy@sesptsa.org</a>.</p>
       </div>
     </section>
   </main>

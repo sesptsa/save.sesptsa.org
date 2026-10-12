@@ -172,4 +172,175 @@
       frame.classList.remove("is-submitted");
     }
   });
+
+  /* ---- The undersigned ------------------------------------------------ */
+  // The feed is a Google Apps Script web app (tools/signers-apps-script.js)
+  // serving only the names and stories PTSA volunteers have approved. All of
+  // it is text typed by the public, so it only ever goes in via textContent.
+  // Until it loads (or if it never does) the section and the hero count stay
+  // hidden.
+  var undersigned = document.getElementById("undersigned");
+  var STORY_CUT = 280; // longer stories show this much, then "Read more"
+  var wide = window.matchMedia("(min-width: 560px)").matches;
+
+  if (undersigned.dataset.feed) {
+    fetch(undersigned.dataset.feed)
+      .then(function (res) {
+        if (!res.ok) throw new Error("Signers feed: HTTP " + res.status);
+        return res.json();
+      })
+      .then(showSigners)
+      .catch(function (err) {
+        console.warn(err);
+      });
+  }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text) node.textContent = text;
+    return node;
+  }
+
+  function signer(s, nameTag) {
+    var parts = [el(nameTag, "signer-name", s.name)];
+    if (s.connection) parts.push(el("span", "signer-connection", s.connection));
+    return parts;
+  }
+
+  function nameItem(s) {
+    var li = el("li");
+    li.append.apply(li, signer(s, "span"));
+    return li;
+  }
+
+  function storyItem(s) {
+    var li = el("li");
+    var fig = el("figure", "story");
+    var mark = el("span", "quote-mark", "\u201C");
+    mark.setAttribute("aria-hidden", "true");
+    var quote = el("blockquote", "", s.story);
+    fig.append(mark, quote);
+    if (s.story.length > STORY_CUT + 60) {
+      // Cut at the last space before the limit and keep the full text a tap away.
+      var cut = s.story.slice(0, STORY_CUT + 1).search(/\s\S*$/);
+      var short = s.story.slice(0, cut > 0 ? cut : STORY_CUT).replace(/[\s.,;:]+$/, "") + "\u2026";
+      var more = el("button", "read-more", "Read more");
+      more.type = "button";
+      more.setAttribute("aria-expanded", "false");
+      quote.textContent = short;
+      more.addEventListener("click", function () {
+        var open = more.getAttribute("aria-expanded") !== "true";
+        quote.textContent = open ? s.story : short;
+        more.textContent = open ? "Show less" : "Read more";
+        more.setAttribute("aria-expanded", String(open));
+      });
+      fig.append(more);
+    }
+    var caption = el("figcaption");
+    caption.append.apply(caption, signer(s, "strong"));
+    fig.append(caption);
+    li.append(fig);
+    return li;
+  }
+
+  // Replaces a list's items. Returns the new <li>s.
+  function fillList(list, items, render) {
+    var lis = items.map(render);
+    list.textContent = "";
+    list.append.apply(list, lis);
+    return lis;
+  }
+
+  // Moves focus to an item a "more" button just revealed, so keyboard and
+  // screen reader users carry on from there instead of losing their place.
+  function focusItem(li) {
+    if (!li) return;
+    li.tabIndex = -1;
+    li.focus();
+  }
+
+  function showSigners(feed) {
+    var names = (feed && feed.names) || [];
+    var stories = (feed && feed.stories) || [];
+    // The count is every signature; names and stories only the approved ones.
+    if (!(feed && feed.count > 0)) return;
+    var count = feed.count.toLocaleString("en-US");
+
+    document
+      .querySelectorAll(".signed-count strong, .undersigned-count strong")
+      .forEach(function (n) {
+        n.textContent = count;
+      });
+    document.querySelector(".hero .signed-count").classList.add("is-ready");
+    undersigned.hidden = false;
+
+    // Stories: featured first (the feed's order), a few at a time.
+    if (stories.length) {
+      var storyBox = undersigned.querySelector(".stories");
+      var storyList = storyBox.querySelector(".story-list");
+      var moreStories = storyBox.querySelector(".more-button");
+      var shownStories = 0;
+      var showStories = function (n) {
+        shownStories = Math.min(stories.length, shownStories + n);
+        var lis = fillList(storyList, stories.slice(0, shownStories), storyItem);
+        moreStories.hidden = shownStories >= stories.length;
+        return lis;
+      };
+      showStories(wide ? 6 : 3);
+      storyBox.hidden = false;
+      moreStories.querySelector("button").addEventListener("click", function () {
+        var before = shownStories;
+        focusItem(showStories(6)[before]);
+      });
+    }
+
+    // Names: newest first, the first few until "Show all"; typing in "Find a
+    // name" searches all of them, ignoring case and accents.
+    if (!names.length) return;
+    undersigned.querySelector(".names").hidden = false;
+    var nameList = undersigned.querySelector(".name-list");
+    var status = undersigned.querySelector(".names-status");
+    var find = document.getElementById("find-name");
+    var showAll = undersigned.querySelector(".names .more-button");
+    var first = wide ? 24 : 8;
+    var expanded = names.length <= first;
+    var fold = function (text) {
+      return text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+    };
+    var folded = names.map(function (s) {
+      return fold(s.name);
+    });
+    showAll.querySelector("button").textContent =
+      "Show all " + names.length.toLocaleString("en-US") + " names";
+
+    var update = function () {
+      var q = fold(find.value.trim());
+      if (!q) {
+        showAll.hidden = expanded;
+        status.textContent = "Newest first";
+        return fillList(nameList, expanded ? names : names.slice(0, first), nameItem);
+      }
+      var hits = names.filter(function (s, i) {
+        return folded[i].indexOf(q) >= 0;
+      });
+      showAll.hidden = true;
+      status.textContent =
+        hits.length === 0
+          ? "No names match"
+          : hits.length === 1
+            ? "1 name matches"
+            : hits.length + " names match";
+      return fillList(nameList, hits, nameItem);
+    };
+    update();
+    find.addEventListener("input", update);
+    showAll.querySelector("button").addEventListener("click", function () {
+      expanded = true;
+      focusItem(update()[first]);
+    });
+  }
 })();

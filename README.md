@@ -7,10 +7,12 @@ Live at https://save.sesptsa.org — a static site served by GitHub Pages.
 
 ## Structure
 
-- `index.html` — the letter, references, and embedded signature form
+- `index.html` — the letter, references, embedded signature form, and the signers list
 - `sign/index.html` — redirect to the Google Form (so `/sign` is a stable link)
 - `style.css`, `script.js` — styles and the small script for citation popovers
 - `tools/letter2html.py` — regenerates the letter and references from the Google Docs export
+- `tools/signers-apps-script.js` — the Google Apps Script behind the signers list
+  (approved names and stories as JSON); setup steps at the top
 
 No build step: GitHub Pages serves these files exactly as committed. Edit, commit to
 `main`, and it deploys within a minute.
