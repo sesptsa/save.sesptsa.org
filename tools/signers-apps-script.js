@@ -1,24 +1,27 @@
 /**
  * Signers feed for save.sesptsa.org: a Google Apps Script web app, bound to the
  * signature form's responses spreadsheet, that serves the names and stories PTSA
- * volunteers have approved as JSON, plus the total number of signatures. The page
- * (script.js) fetches it and fills in "The undersigned" and the hero's count. Nothing here runs on the site itself; this file is the
- * source of the script, kept in the repo so it isn't lost in a Google account.
+ * volunteers have approved as JSON, plus the total number of signatures. The
+ * page (script.js) fetches it and fills in "The undersigned" and the hero's
+ * count. Nothing here runs on the site itself; this file is the source of the
+ * script, kept in the repo so it isn't lost in a Google account.
  *
  * No name or story is public until a volunteer ticks it. The count is not
- * reviewed: it is every non-empty name, so it moves the moment someone signs
- * (a prank or duplicate inflates it until someone deletes the row). Each tab
- * that holds signatures gets three checkbox columns (Signers menu > Add review
- * columns to this tab):
+ * reviewed: it is every different non-empty name, so it moves the moment
+ * someone signs (a prank inflates it until someone deletes the row). Names
+ * are compared ignoring case, accents and spacing, so someone who signs twice
+ * counts once and is listed once (the newer row) even if both are ticked; two
+ * different people with the same name also count once. Each tab that holds
+ * signatures gets three checkbox columns (Signers menu > Add review columns
+ * to this tab):
  *   Name ok   Real person, not a duplicate or a joke, and the connection line
  *             is fine to show. Shows the name in the list.
  *   Story ok  The impact answer can be shown. Leave unticked if it names a
  *             child, a staff member, or anything private.
  *   Feature?  Put the story first.
  * Any tab with a "Name ok" column is read and counted, so the earlier
- * petition's names can sit in their own tab (but a tab whose rows were copied
- * into another must not keep its review columns, or they count twice). Columns are found by their header text, so reordering
- * columns or adding form questions doesn't break anything: the name is the
+ * petition's names can sit in their own tab. Columns are found by their header
+ * text, so reordering columns or adding form questions doesn't break anything: the name is the
  * first header starting "Full name" or "Name" (or "First name" + "Last name"),
  * the connection the first containing "connect", the story the first containing
  * "impact", and the order comes from "Timestamp" (newest first; rows without
@@ -118,10 +121,10 @@ function cachedFeed_() {
 }
 
 // { count, names: [{ name, connection }], stories: [{ name, connection, story }] }
-// count: every non-empty name, ticked or not. names: ticked, newest first.
-// stories: ticked, featured first, then newest first.
+// count: every different non-empty name, ticked or not. names: ticked, each
+// name once, newest first. stories: ticked, featured first, then newest first.
 function buildFeed_(sheets) {
-  var count = 0;
+  var signed = {}; // nameKey_ -> true, for the count
   var rows = [];
   sheets.forEach(function (sheet) {
     var values = sheet.getDataRange().getValues();
@@ -135,7 +138,7 @@ function buildFeed_(sheets) {
           ? clean_(row[col.name])
           : clean_(row[col.first] + " " + (col.last >= 0 ? row[col.last] : ""));
       if (!name) return;
-      count += 1;
+      signed[nameKey_(name)] = true;
       if (!ticked_(row[col.nameOk])) return;
       var stamp = col.time >= 0 ? row[col.time] : null;
       var time = stamp && typeof stamp.getTime === "function" ? stamp.getTime() : 0;
@@ -159,11 +162,19 @@ function buildFeed_(sheets) {
   stories.sort(function (a, b) {
     return Number(b.featured) - Number(a.featured) || b.time - a.time || a.order - b.order;
   });
+  var listed = {};
   return {
-    count: count,
-    names: rows.map(function (r) {
-      return { name: r.name, connection: r.connection };
-    }),
+    count: Object.keys(signed).length,
+    names: rows
+      .filter(function (r) {
+        var key = nameKey_(r.name);
+        if (listed[key]) return false;
+        listed[key] = true;
+        return true;
+      })
+      .map(function (r) {
+        return { name: r.name, connection: r.connection };
+      }),
     stories: stories.map(function (r) {
       return { name: r.name, connection: r.connection, story: r.story };
     }),
@@ -206,6 +217,14 @@ function columns_(headers) {
 
 function ticked_(v) {
   return v === true || String(v).toUpperCase() === "TRUE";
+}
+
+// Who a name refers to, for spotting repeats: "  José  Smith" = "jose smith".
+function nameKey_(name) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 // One line, single spaces.

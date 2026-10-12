@@ -640,6 +640,7 @@ sup.cite a.is-open {
 }
 .form-fallback {
   margin: 1.25rem 0 0;
+  font-size: 1rem;
 }
 .form-fallback a {
   color: var(--ink);
@@ -649,7 +650,7 @@ sup.cite a.is-open {
 /* ---- The undersigned: approved names and stories from the signers feed --- */
 .undersigned {
   background: var(--cream); /* continues the sign section's band */
-  padding: 0 0 3rem;
+  padding: 1.5rem 0 3rem;
 }
 .undersigned-inner {
   padding-top: 2.5rem;
@@ -705,7 +706,9 @@ sup.cite a.is-open {
 
 /* Stories: cards in as many columns as fit, each as tall as its text. */
 .stories {
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 3rem;
+  border-bottom: var(--rule-heavy);
 }
 .story-list {
   display: grid;
