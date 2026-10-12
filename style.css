@@ -307,7 +307,7 @@ p {
   }
 }
 /* The running signature count, ruled off from "Add my name". It shows a
-   floor ("500+", in index.html) at once, then the visitor's last-seen count,
+   floor ("700+", in index.html) at once, then the visitor's last-seen count,
    then the live one when the feed answers. The hidden .count-sizer keeps the
    floor's width, and with tabular figures any 3-digit count is narrower, so the
    button never moves. Raise the floor in both spans as the count grows (keep
