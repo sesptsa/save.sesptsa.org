@@ -30,13 +30,13 @@ served by GitHub Pages at https://save.sesptsa.org.
   count in the hero. Both are filled by `script.js` from the JSON feed, whose URL is
   the `<link rel="preload" id="signers-feed">` in `<head>` (preloaded because Apps
   Script takes 1–2 s). The section stays hidden until it loads; the hero count
-  shows a floor ("200+") at once, then the visitor's last-seen count, then the
+  shows a floor ("400+") at once, then the visitor's last-seen count, then the
   live one. Raise the floor as the count grows (both spans; see the comment in
   `style.css`), never above the real count. The feed is a
   Google Apps Script web app on the form's responses spreadsheet; its source and
-  setup steps are in `tools/signers-apps-script.js`. It serves only rows a
-  volunteer has ticked ("Name ok", "Story ok", "Feature?"), so the data never
-  touches this repo. Names go out as "First L." until full names are approved
+  setup steps are in `tools/signers-apps-script.js`. It serves only ticked rows
+  ("Name ok", "Story ok", "Feature?"), so the data never touches this repo; Name ok
+  can be ticked automatically on new signatures, Story ok is always a volunteer's. Names go out as "First L." until full names are approved
   (`FULL_NAMES` in the script). Feed text is public input: insert it with `textContent` only.
 - `script.js` — see above.
 - `package.json`, `.oxlintrc.json`, `.prettierrc`, `.prettierignore` — dev tooling only.

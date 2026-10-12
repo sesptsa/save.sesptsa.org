@@ -6,7 +6,10 @@
  * count. Nothing here runs on the site itself; this file is the source of the
  * script, kept in the repo so it isn't lost in a Google account.
  *
- * No name or story is public until a volunteer ticks it. The count is not
+ * No name or story is public until it is ticked. Name ok can be ticked
+ * automatically on each new signature (Signers > Tick Name ok on new
+ * signatures), so a name shows as soon as someone signs and volunteers untick
+ * the ones to hide; Story ok is always a volunteer's call. The count is not
  * reviewed: it is every different non-empty name, so it moves the moment
  * someone signs (a prank inflates it until someone deletes the row). Names
  * are compared ignoring case, accents and spacing, so someone who signs twice
@@ -16,8 +19,10 @@
  * "First L." (see shortName_), so full names never leave the sheet. Each tab that holds
  * signatures gets three checkbox columns (Signers menu > Add review columns
  * to this tab):
- *   Name ok   Real person, not a duplicate or a joke, and the connection line
- *             is fine to show. Shows the name in the list.
+ *   Name ok   Shows the name in the list. Ticked automatically on new
+ *             signatures while auto-tick is on; untick it for anything that
+ *             isn't a real person, is a joke, or whose connection line
+ *             shouldn't show.
  *   Story ok  The impact answer can be shown. Leave unticked if it names a
  *             child, a staff member, or anything private.
  *   Feature?  Put the story first.
@@ -42,18 +47,24 @@
  *      Who has access: Anyone. Authorize, then copy the web app URL (ends in
  *      /exec) into the href of <link id="signers-feed"> in index.html.
  *   5. Open the URL in a browser to check the JSON.
+ *   6. Optional: Signers > Tick Name ok on new signatures (authorize when
+ *      asked). The trigger runs as whoever clicked it, so "Stop ticking new
+ *      signatures" only removes it for that person.
  * Updating the code later: paste it in, save, then Deploy > Manage deployments
  * > edit (pencil) > Version: New version > Deploy. That keeps the same URL;
- * "New deployment" would make a new one.
+ * "New deployment" would make a new one. To refresh the header notes after
+ * changing REVIEW_NOTES, run Signers > Add review columns again (it keeps
+ * existing ticks).
  *
- * Ticks and new signatures show up on the site within CACHE_SECONDS.
+ * Ticks show up on the site within CACHE_SECONDS. With auto-tick on, a new
+ * signature clears the cache, so it shows on the next page load.
  */
 
 var REVIEW = { name: "Name ok", story: "Story ok", feature: "Feature?" };
 var REVIEW_NOTES = {
   "Name ok":
-    "Real person, not a duplicate or a joke, and the connection line is fine to show. " +
-    "Shows the name in the list.",
+    "Shows the name in the list. Ticked automatically when someone signs. Untick it " +
+    "if it isn't a real person, is a joke, or the connection line shouldn't show.",
   "Story ok":
     "Impact answer can be shown. Leave unticked if it names a child, a staff member, " +
     "or anything private.",
@@ -75,11 +86,49 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("Signers")
     .addItem("Add review columns to this tab", "addReviewColumns")
+    .addSeparator()
+    .addItem("Tick Name ok on new signatures", "startAutoTick")
+    .addItem("Stop ticking new signatures", "stopAutoTick")
     .addToUi();
+}
+
+// Installs the form-submit trigger that runs tickNameOk. Safe to click twice.
+// oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
+function startAutoTick() {
+  removeAutoTick_();
+  ScriptApp.newTrigger("tickNameOk")
+    .forSpreadsheet(SpreadsheetApp.getActive())
+    .onFormSubmit()
+    .create();
+  SpreadsheetApp.getActive().toast("New signatures will show with Name ok ticked.");
+}
+
+// oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
+function stopAutoTick() {
+  removeAutoTick_();
+  SpreadsheetApp.getActive().toast("New signatures will wait for a Name ok tick.");
+}
+
+function removeAutoTick_() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === "tickNameOk") ScriptApp.deleteTrigger(t);
+  });
+}
+
+// Form-submit trigger: ticks Name ok on the new row, then drops the cached
+// feed so the name and count show on the next page load, not CACHE_SECONDS later.
+// oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
+function tickNameOk(e) {
+  var sheet = e.range.getSheet();
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(clean_);
+  var col = headers.indexOf(REVIEW.name);
+  if (col >= 0) sheet.getRange(e.range.getRow(), col + 1).setValue(true);
+  CacheService.getScriptCache().remove("feed:n");
 }
 
 // Adds any missing review columns at the right of the active tab, with
 // checkboxes far enough down for new form responses and a note on each header.
+// Existing ticks are kept (insertCheckboxes would reset them all to unticked).
 // oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
 function addReviewColumns() {
   var sheet = SpreadsheetApp.getActiveSheet();
@@ -97,7 +146,9 @@ function addReviewColumns() {
       headers[col - 1] = title;
     }
     sheet.getRange(1, col).setNote(REVIEW_NOTES[title]);
-    sheet.getRange(2, col, sheet.getMaxRows() - 1, 1).insertCheckboxes();
+    sheet
+      .getRange(2, col, sheet.getMaxRows() - 1, 1)
+      .setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
   });
 }
 
