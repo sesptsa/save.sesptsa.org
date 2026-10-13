@@ -56,8 +56,16 @@
  * changing REVIEW_NOTES, run Signers > Add review columns again (it keeps
  * existing ticks).
  *
- * Ticks show up on the site within CACHE_SECONDS. With auto-tick on, a new
- * signature clears the cache, so it shows on the next page load.
+ * Ticks show up on the site within FRESH_SECONDS. With auto-tick on, a new
+ * signature rebuilds the feed, so it shows on the next page load.
+ *
+ * Only one build runs at a time (each reads every signatures tab). A visitor
+ * who finds the feed stale gets the old copy at once while one request
+ * rebuilds it; only when nothing is cached do requests wait for that build.
+ * Without this, a busy hour of signing (each signature emptied the cache)
+ * started a build for every visitor at once, they slowed each other past
+ * Apps Script's 6-minute limit, none finished, and the feed went down. Each
+ * build logs how long each tab took: Apps Script > Executions.
  */
 
 var REVIEW = { name: "Name ok", story: "Story ok", feature: "Feature?" };
@@ -73,12 +81,21 @@ var REVIEW_NOTES = {
 // false: names go out as "First L." (Jane Q. Public -> "Jane P."). Set to true,
 // save and deploy a new version once full names are approved.
 var FULL_NAMES = false;
-var CACHE_SECONDS = 300;
+var FRESH_SECONDS = 300; // older than this, the next request rebuilds the feed
+var KEEP_SECONDS = 21600; // the longest the cache keeps anything; stale copies are served meanwhile
 var CHUNK = 30000; // characters per cache entry; the cache caps each entry at 100 KB
 
 // oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
 function doGet() {
-  return ContentService.createTextOutput(cachedFeed_()).setMimeType(ContentService.MimeType.JSON);
+  var cached = readFeed_();
+  var json = cached && cached.json;
+  if (!cached || Date.now() - cached.builtAt > FRESH_SECONDS * 1000) {
+    // Stale: rebuild unless another request already is, and serve the old copy
+    // either way. Nothing cached: wait for whichever build is running.
+    json = buildFeedOnce_(cached ? 0 : 60000) || json;
+  }
+  if (!json) throw new Error("The signers feed is still building; try again shortly.");
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
 }
 
 // oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
@@ -115,15 +132,15 @@ function removeAutoTick_() {
   });
 }
 
-// Form-submit trigger: ticks Name ok on the new row, then drops the cached
-// feed so the name and count show on the next page load, not CACHE_SECONDS later.
+// Form-submit trigger: ticks Name ok on the new row, then rebuilds the feed so
+// the name and count show on the next page load, not FRESH_SECONDS later.
 // oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
 function tickNameOk(e) {
   var sheet = e.range.getSheet();
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(clean_);
   var col = headers.indexOf(REVIEW.name);
   if (col >= 0) sheet.getRange(e.range.getRow(), col + 1).setValue(true);
-  CacheService.getScriptCache().remove("feed:n");
+  buildFeedOnce_(60000);
 }
 
 // Adds any missing review columns at the right of the active tab, with
@@ -152,28 +169,49 @@ function addReviewColumns() {
   });
 }
 
-function cachedFeed_() {
+// { json, builtAt } from the cache, or null. builtAt is when that build
+// started reading the sheet.
+function readFeed_() {
   var cache = CacheService.getScriptCache();
-  var n = Number(cache.get("feed:n"));
-  if (n) {
-    var keys = [];
-    for (var i = 0; i < n; i++) keys.push("feed:" + i);
-    var parts = cache.getAll(keys);
-    if (Object.keys(parts).length === n) {
-      return keys
-        .map(function (k) {
-          return parts[k];
-        })
-        .join("");
-    }
+  var head = cache.getAll(["feed:n", "feed:at"]);
+  var n = Number(head["feed:n"]);
+  var builtAt = Number(head["feed:at"]);
+  if (!n || !builtAt) return null;
+  var keys = [];
+  for (var i = 0; i < n; i++) keys.push("feed:" + i);
+  var parts = cache.getAll(keys);
+  if (Object.keys(parts).length !== n) return null;
+  var json = keys
+    .map(function (k) {
+      return parts[k];
+    })
+    .join("");
+  return { json: json, builtAt: builtAt };
+}
+
+// Builds the feed and caches it, one build at a time. If another build is
+// running, waits up to waitMs for it and returns its result if it started
+// after this call did (so it includes any row written just before); otherwise
+// builds again. Returns null if it couldn't get a turn in time.
+function buildFeedOnce_(waitMs) {
+  var asked = Date.now();
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(waitMs)) return null;
+  try {
+    var cached = readFeed_();
+    if (cached && cached.builtAt >= asked) return cached.json;
+    var started = Date.now();
+    var json = JSON.stringify(buildFeed_(SpreadsheetApp.getActiveSpreadsheet().getSheets()));
+    var entries = { "feed:at": String(started) };
+    var count = Math.ceil(json.length / CHUNK);
+    for (var j = 0; j < count; j++) entries["feed:" + j] = json.slice(j * CHUNK, (j + 1) * CHUNK);
+    entries["feed:n"] = String(count);
+    CacheService.getScriptCache().putAll(entries, KEEP_SECONDS);
+    console.log("Feed built in " + (Date.now() - started) + " ms, " + json.length + " characters");
+    return json;
+  } finally {
+    lock.releaseLock();
   }
-  var json = JSON.stringify(buildFeed_(SpreadsheetApp.getActiveSpreadsheet().getSheets()));
-  var entries = {};
-  var count = Math.ceil(json.length / CHUNK);
-  for (var j = 0; j < count; j++) entries["feed:" + j] = json.slice(j * CHUNK, (j + 1) * CHUNK);
-  entries["feed:n"] = String(count);
-  cache.putAll(entries, CACHE_SECONDS);
-  return json;
 }
 
 // { count, names: [{ name, connection }], stories: [{ name, connection, story }] }
@@ -183,12 +221,26 @@ function buildFeed_(sheets) {
   var signed = {}; // nameKey_ -> true, for the count
   var rows = [];
   sheets.forEach(function (sheet) {
-    var values = sheet.getDataRange().getValues();
-    if (values.length < 2) return;
-    var headers = values[0].map(clean_);
+    // Headers first, so tabs that don't hold signatures are never read in full.
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    if (lastRow < 2) return;
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(clean_);
     var col = columns_(headers);
     if (col.nameOk < 0 || (col.name < 0 && col.first < 0)) return;
-    values.slice(1).forEach(function (row) {
+    var started = Date.now();
+    var values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    console.log(
+      sheet.getName() +
+        ": " +
+        values.length +
+        " rows x " +
+        lastCol +
+        " columns read in " +
+        (Date.now() - started) +
+        " ms",
+    );
+    values.forEach(function (row) {
       var name =
         col.name >= 0
           ? clean_(row[col.name])

@@ -178,7 +178,7 @@
   // serving only the names and stories PTSA volunteers have approved, plus the
   // count. All of it is text typed by the public, so it only ever goes in via
   // textContent. It takes a second or more, so the request is preloaded from
-  // <head>, and the hero shows a floor ("700+") or this visitor's last-seen
+  // <head>, and the hero shows a floor ("1,000+") or this visitor's last-seen
   // count meanwhile. The section stays hidden until the feed loads.
   var undersigned = document.getElementById("undersigned");
   var heroCount = document.querySelector(".hero .signed-count");

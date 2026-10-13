@@ -30,7 +30,7 @@ served by GitHub Pages at https://save.sesptsa.org.
   count in the hero. Both are filled by `script.js` from the JSON feed, whose URL is
   the `<link rel="preload" id="signers-feed">` in `<head>` (preloaded because Apps
   Script takes 1–2 s). The section stays hidden until it loads; the hero count
-  shows a floor ("700+") at once, then the visitor's last-seen count, then the
+  shows a floor ("1,000+") at once, then the visitor's last-seen count, then the
   live one. Raise the floor as the count grows (both spans; see the comment in
   `style.css`), never above the real count. The feed is a
   Google Apps Script web app on the form's responses spreadsheet; its source and
