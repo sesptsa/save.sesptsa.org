@@ -1,6 +1,7 @@
-// Save Sunnyside — the little bit of behaviour the page needs.
-// Everything here is progressive: without it the citations are plain anchor
-// links into the references list and the page still reads and signs fine.
+// Save Sunnyside — the little bit of behaviour the letter page needs (signers.js,
+// loaded first, holds what the impact page shares). Everything here is
+// progressive: without it the citations are plain anchor links into the
+// references list and the page still reads and signs fine.
 (function () {
   "use strict";
 
@@ -174,136 +175,53 @@
   });
 
   /* ---- The undersigned ------------------------------------------------ */
-  // The feed is a Google Apps Script web app (tools/signers-apps-script.js)
-  // serving only the names and stories PTSA volunteers have approved, plus the
-  // count. All of it is text typed by the public, so it only ever goes in via
-  // textContent. It takes a second or more, so the request is preloaded from
-  // <head>, and the hero shows a floor ("1,000+") or this visitor's last-seen
-  // count meanwhile. The section stays hidden until the feed loads.
+  // The feed (signers.js) serves the count plus only the names and stories
+  // PTSA volunteers have approved. It takes a second or more, so the hero
+  // shows a floor ("1,000+") or this visitor's last-seen count meanwhile, and
+  // the section stays hidden until it loads.
+  var S = window.SaveSES;
   var undersigned = document.getElementById("undersigned");
   var heroCount = document.querySelector(".hero .signed-count");
   var heroValue = heroCount.querySelector(".count-value");
-  var feedLink = document.getElementById("signers-feed");
-  var COUNT_KEY = "save-ses:signed-count";
-  var STORY_CUT = 280; // longer stories show this much, then "Read more"
   var wide = window.matchMedia("(min-width: 560px)").matches;
 
-  // Storage can be unavailable (private mode, blocked site data); the floor
-  // then just stays until the feed answers.
-  try {
-    var seen = Number(localStorage.getItem(COUNT_KEY));
-    if (seen > parseInt(heroValue.textContent, 10))
-      heroValue.textContent = seen.toLocaleString("en-US");
-  } catch (err) {
-    // keep the floor
-  }
-
-  if (feedLink) {
-    // Same URL and CORS mode as the preload, so the browser reuses that request.
-    fetch(feedLink.href)
-      .then(function (res) {
-        if (!res.ok) throw new Error("Signers feed: HTTP " + res.status);
-        return res.json();
-      })
-      .then(function (feed) {
-        if (!showSigners(feed)) noSection();
-      })
-      .catch(function (err) {
-        noSection();
-        console.warn(err);
-      });
-  } else {
-    noSection();
-  }
+  S.showLastCount(heroValue);
+  S.loadFeed()
+    .then(function (feed) {
+      if (!showSigners(feed)) return noSection();
+      // A link to #undersigned from elsewhere (the impact page's count) arrived
+      // while the section was still hidden, so the browser had nowhere to go.
+      // Scroll once the lists above have laid out.
+      if (location.hash === "#undersigned") {
+        requestAnimationFrame(function () {
+          undersigned.scrollIntoView();
+        });
+      }
+    })
+    .catch(function (err) {
+      noSection();
+      console.warn(err);
+    });
 
   // Without the section the count keeps its floor but links nowhere.
   function noSection() {
     heroCount.removeAttribute("href");
   }
 
-  function el(tag, className, text) {
-    var node = document.createElement(tag);
-    if (className) node.className = className;
-    if (text) node.textContent = text;
-    return node;
-  }
-
-  function signer(s, nameTag) {
-    var parts = [el(nameTag, "signer-name", s.name)];
-    if (s.connection) parts.push(el("span", "signer-connection", s.connection));
-    return parts;
-  }
-
-  function nameItem(s) {
-    var li = el("li");
-    li.append.apply(li, signer(s, "span"));
-    return li;
-  }
-
-  function storyItem(s) {
-    var li = el("li");
-    var fig = el("figure", "story");
-    var mark = el("span", "quote-mark", "\u201C");
-    mark.setAttribute("aria-hidden", "true");
-    var quote = el("blockquote", "", s.story);
-    fig.append(mark, quote);
-    if (s.story.length > STORY_CUT + 60) {
-      // Cut at the last space before the limit and keep the full text a tap away.
-      var cut = s.story.slice(0, STORY_CUT + 1).search(/\s\S*$/);
-      var short = s.story.slice(0, cut > 0 ? cut : STORY_CUT).replace(/[\s.,;:]+$/, "") + "\u2026";
-      var more = el("button", "read-more", "Read more");
-      more.type = "button";
-      more.setAttribute("aria-expanded", "false");
-      quote.textContent = short;
-      more.addEventListener("click", function () {
-        var open = more.getAttribute("aria-expanded") !== "true";
-        quote.textContent = open ? s.story : short;
-        more.textContent = open ? "Show less" : "Read more";
-        more.setAttribute("aria-expanded", String(open));
-      });
-      fig.append(more);
-    }
-    var caption = el("figcaption");
-    caption.append.apply(caption, signer(s, "strong"));
-    fig.append(caption);
-    li.append(fig);
-    return li;
-  }
-
-  // Replaces a list's items. Returns the new <li>s.
-  function fillList(list, items, render) {
-    var lis = items.map(render);
-    list.textContent = "";
-    list.append.apply(list, lis);
-    return lis;
-  }
-
-  // Moves focus to an item a "more" button just revealed, so keyboard and
-  // screen reader users carry on from there instead of losing their place.
-  function focusItem(li) {
-    if (!li) return;
-    li.tabIndex = -1;
-    li.focus();
-  }
-
   // Returns whether there was anything to show.
   function showSigners(feed) {
     var names = (feed && feed.names) || [];
-    var stories = (feed && feed.stories) || [];
+    var stories = S.storiesFeaturedFirst(feed);
     // The count is every signature; names and stories only the approved ones.
     if (!(feed && feed.count > 0)) return false;
-    var count = feed.count.toLocaleString("en-US");
+    var count = S.format(feed.count);
 
     heroValue.textContent = count;
     undersigned.querySelector(".undersigned-count strong").textContent = count;
-    try {
-      localStorage.setItem(COUNT_KEY, String(feed.count));
-    } catch (err) {
-      // fine: next visit starts from the floor
-    }
+    S.rememberCount(feed.count);
     undersigned.hidden = false;
 
-    // Stories: featured first (the feed's order), a few at a time.
+    // Stories: featured first, a few at a time; the rest are on /impact/.
     if (stories.length) {
       var storyBox = undersigned.querySelector(".stories");
       var storyList = storyBox.querySelector(".story-list");
@@ -311,7 +229,7 @@
       var shownStories = 0;
       var showStories = function (n) {
         shownStories = Math.min(stories.length, shownStories + n);
-        var lis = fillList(storyList, stories.slice(0, shownStories), storyItem);
+        var lis = S.fillList(storyList, stories.slice(0, shownStories), S.storyItem);
         moreStories.hidden = shownStories >= stories.length;
         return lis;
       };
@@ -319,7 +237,7 @@
       storyBox.hidden = false;
       moreStories.querySelector("button").addEventListener("click", function () {
         var before = shownStories;
-        focusItem(showStories(6)[before]);
+        S.focusItem(showStories(6)[before]);
       });
     }
 
@@ -342,15 +260,14 @@
     var folded = names.map(function (s) {
       return fold(s.name);
     });
-    showAll.querySelector("button").textContent =
-      "Show all " + names.length.toLocaleString("en-US") + " names";
+    showAll.querySelector("button").textContent = "Show all " + S.format(names.length) + " names";
 
     var update = function () {
       var q = fold(find.value.trim());
       if (!q) {
         showAll.hidden = expanded;
         status.textContent = "Newest first";
-        return fillList(nameList, expanded ? names : names.slice(0, first), nameItem);
+        return S.fillList(nameList, expanded ? names : names.slice(0, first), S.nameItem);
       }
       var hits = names.filter(function (s, i) {
         return folded[i].indexOf(q) >= 0;
@@ -362,13 +279,13 @@
           : hits.length === 1
             ? "1 name matches"
             : hits.length + " names match";
-      return fillList(nameList, hits, nameItem);
+      return S.fillList(nameList, hits, S.nameItem);
     };
     update();
     find.addEventListener("input", update);
     showAll.querySelector("button").addEventListener("click", function () {
       expanded = true;
-      focusItem(update()[first]);
+      S.focusItem(update()[first]);
     });
     return true;
   }

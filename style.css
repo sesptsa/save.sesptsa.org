@@ -1,5 +1,6 @@
-/* Save Sunnyside — one page: letter, references, signature form.
-   Tokens first; everything green on the page uses --green (August's artwork). */
+/* Save Sunnyside — the letter page (letter, references, signature form) and
+   the impact page, which shares the header, footer, buttons and story cards.
+   Tokens first; everything green on the site uses --green (August's artwork). */
 
 :root {
   --green: #007108;
@@ -13,6 +14,11 @@
   --rule: #d8ded3;
   --rule-heavy: 2px solid var(--ink); /* the section dividers */
   --tint: #e9f2ea;
+  /* The impact page's extra colours: a lighter green for accents on the dark
+     band, and two deeper creams for the stories band and its rules. */
+  --leaf: #5cb866;
+  --mint: #e3efd9;
+  --sage: #c5d9c6;
   --measure: 40rem; /* letter column; also the form embed's natural width */
   --wide: 72rem; /* header */
   --gutter: 1.25rem;
@@ -20,8 +26,12 @@
   --font: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
   /* Page titles are sized from the column so the longest word (ENVIRONMENTAL,
-     in the display style) always fits: column width / --title-scale. */
+     in the display style) always fits: column width / --title-scale, up to
+     --title-max. The hero's column is --hero-text-w (its text column beside the
+     artwork from 1200px). */
   --title-scale: 12.05;
+  --title-max: 4rem;
+  --hero-art-w: 24rem; /* beside the title from 1200px */
 
   /* Side-by-side sign section (>= 1200px): intro column, gap, form column. */
   --sign-intro: 24rem; /* fits "ADD YOUR" on one line at the title size */
@@ -53,19 +63,22 @@
 }
 :root[data-theme="green"] {
   --header-bg: var(--green);
-  --header-fg: var(--paper);
+  --header-fg: var(--cream);
   --header-accent: var(--white);
-  --header-rule: color-mix(in srgb, var(--paper) 25%, var(--green));
+  --header-rule: color-mix(in srgb, var(--cream) 25%, var(--green));
   --hero-bg: var(--green);
-  --hero-fg: var(--paper);
-  --mast-button-bg: var(--paper);
+  --hero-fg: var(--cream);
+  --mast-button-bg: var(--cream);
   --mast-button-fg: var(--green);
   --mast-button-hover: var(--white);
-  --mast-focus: var(--paper);
+  --mast-focus: var(--cream);
 }
 
 * {
   box-sizing: border-box;
+}
+[hidden] {
+  display: none !important; /* even where a class sets display: flex or grid */
 }
 
 html {
@@ -224,9 +237,11 @@ p {
   font-weight: 600;
   font-size: 1rem;
 }
-.site-nav a:hover {
+.site-nav a:hover,
+.site-nav a[aria-current] {
   color: var(--header-accent);
   text-decoration: underline;
+  text-underline-offset: 0.3em;
 }
 @media (min-width: 720px) {
   .site-nav {
@@ -234,12 +249,14 @@ p {
   }
 }
 .site-header .button,
-.hero .button {
+.hero .button,
+.bridge .button {
   background: var(--mast-button-bg);
   color: var(--mast-button-fg);
 }
 .site-header .button:hover,
-.hero .button:hover {
+.hero .button:hover,
+.bridge .button:hover {
   background: var(--mast-button-hover);
   color: var(--mast-button-fg);
 }
@@ -272,12 +289,41 @@ p {
   mask: url(assets/save-ses-mask.svg) center / contain no-repeat;
   print-color-adjust: exact;
 }
+/* Page tabs: the site nav for phones, at the top of the hero in its colourway.
+   They go once the header's own nav shows. */
+.page-tabs {
+  display: flex;
+  gap: 1.5rem;
+  margin: -0.5rem 0 1.75rem;
+}
+.page-tabs a {
+  padding: 0.25rem 0 0.35rem;
+  color: var(--hero-fg);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.page-tabs a:hover {
+  border-bottom-color: color-mix(in srgb, currentColor 50%, transparent);
+}
+.page-tabs a[aria-current] {
+  border-bottom-color: currentColor;
+}
+@media (min-width: 720px) {
+  .page-tabs {
+    display: none;
+  }
+}
 /* Page titles: the hero h1, "Sign the letter" and "The undersigned" share one
    size (see --title-scale). */
 .hero h1,
 .sign h2,
 .undersigned h2 {
-  font-size: calc(min(100vw - 2 * var(--gutter), var(--measure)) / var(--title-scale));
+  font-size: min(
+    calc(var(--hero-text-w, min(100vw - 2 * var(--gutter), var(--measure))) / var(--title-scale)),
+    var(--title-max)
+  );
   line-height: 0.95;
   margin-bottom: 1rem;
   text-wrap: balance;
@@ -287,7 +333,8 @@ p {
   margin-bottom: 1.5rem;
   max-width: 34em;
 }
-.hero .actions {
+.hero .actions,
+.bridge .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -295,23 +342,28 @@ p {
   margin: 0;
 }
 /* Phones: tighter, so the count and the button share one row down to 360px. */
-.hero .actions .button {
+.hero .actions .button,
+.bridge .actions .button {
   padding-inline: 1.2em;
 }
 @media (min-width: 420px) {
-  .hero .actions {
+  .hero .actions,
+  .bridge .actions {
     gap: 1rem 1.5rem;
   }
-  .hero .actions .button {
+  .hero .actions .button,
+  .bridge .actions .button {
     padding-inline: 1.6em;
   }
 }
 /* The running signature count, ruled off from "Add my name". It shows a
-   floor ("1,000+", in index.html) at once, then the visitor's last-seen count,
+   floor ("1,300+", in index.html and impact/index.html) at once, then the visitor's last-seen count,
    then the live one when the feed answers. The hidden .count-sizer keeps the
-   floor's width, and with tabular figures any 3-digit count is narrower, so the
+   floor's width, and with tabular figures any 4-digit count is narrower, so the
    button never moves. Raise the floor in both spans as the count grows (keep
-   it at or below the real count; past 999 the sizer must be "1,000+"). */
+   it at or below the real count). The font size is set so "1,300+" and the
+   button share one row at 360px; check that again if the floor reaches
+   "10,000+". */
 .signed-count {
   display: flex;
   flex-direction: column;
@@ -337,7 +389,7 @@ p {
 }
 .signed-count strong {
   display: grid; /* the value and the sizer share one cell */
-  font-size: clamp(2rem, 9vw, 3rem);
+  font-size: clamp(1.75rem, 8.25vw, 3rem);
   font-stretch: 125%;
   font-weight: 850;
   letter-spacing: 0.01em;
@@ -725,14 +777,6 @@ sup.cite a.is-open {
   border: 1px solid var(--rule);
   border-radius: 8px;
 }
-.story .quote-mark {
-  display: block;
-  height: 1.5rem;
-  font-size: 2.75rem;
-  font-weight: 900;
-  line-height: 1;
-  color: var(--green);
-}
 .story blockquote {
   margin: 0;
   font-size: 1rem;
@@ -751,8 +795,7 @@ sup.cite a.is-open {
   font-size: 1rem;
   font-weight: 700;
   color: var(--green);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-decoration: none;
   cursor: pointer;
 }
 .read-more:hover {
@@ -849,27 +892,29 @@ sup.cite a.is-open {
   margin: 2.5rem 0 0;
 }
 
-/* Side by side when there is room. The hero puts the artwork beside the title
-   and the sign section puts the intro beside the form, on the same grid, so the
-   hero, the sign section and the footer share one content width.
-   Sign: intro on the left stays put while the form
-   scrolls. The content is exactly as wide as its two columns so its top rule
-   runs from the heading's left edge to the form's right edge; the footer
-   content lines up with it. (script.js switches citation popover vs. sheet at
-   the same 1200px; keep them together.) */
+/* Side by side when there is room. The hero and the footer run the header's
+   full width (--wide), so the title lines up under the wordmark and the
+   artwork under "Add my name"; the sign section puts the intro beside the
+   form and is exactly as wide as those two columns (--sign-w), so its top rule
+   runs from the heading's left edge to the form's right edge, and the signers
+   list lines up with it. Sign: intro on the left stays put while the form
+   scrolls. (script.js switches citation popover vs. sheet at the same 1200px;
+   keep them together.) */
 @media (min-width: 1200px) {
   .hero-inner,
-  .sign-inner,
-  .undersigned-inner,
   .footer-inner {
+    --col-w: var(--wide);
+  }
+  .sign-inner,
+  .undersigned-inner {
     --col-w: var(--sign-w);
   }
   .hero-inner {
     display: grid;
-    grid-template-columns: var(--measure) minmax(16rem, var(--sign-intro));
-    justify-content: space-between;
+    grid-template-columns: minmax(0, 1fr) var(--hero-art-w);
     column-gap: var(--sign-gap);
     align-items: center;
+    --hero-text-w: calc(var(--wide) - var(--sign-gap) - var(--hero-art-w));
   }
   .hero-art {
     width: 100%;
@@ -907,7 +952,557 @@ sup.cite a.is-open {
   color: inherit;
 }
 .site-footer a:hover {
-  color: var(--white);
+  text-decoration-thickness: 2px;
+}
+
+/* ---- Impact page (impact/index.html, impact.js) -------------------------
+   The record first (the hero's numbers, the work, the dark "since 1994" band,
+   how it works), a green bridge back to signing, then the stories, with the
+   featured ones on a full-width mint band. Everything that isn't green or dark
+   sits on --cream, like the letter page's sign section. One content column, the
+   header's width (--wide), so everything lines up under the wordmark. */
+.impact-col {
+  width: min(var(--wide), 100% - 2 * var(--gutter));
+  margin-inline: auto;
+}
+.impact .lede {
+  font-size: 1.1em;
+  max-width: 34em;
+}
+.impact main h2 {
+  font-size: clamp(1.5rem, 5.5vw, 2.25rem);
+  line-height: 1;
+  margin: 0 0 1rem;
+  text-wrap: balance;
+}
+.impact main h3 {
+  font-weight: 800;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  margin: 0 0 0.5rem;
+}
+.eyebrow {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green-deep);
+}
+
+/* Hero: the title and the year's four numbers. Phones: number beside its
+   text, the numbers in one column (subgrid) so the text lines up down the
+   list; wider: two, then four, across. */
+.impact-hero h1 {
+  margin-bottom: 1.5rem;
+}
+/* The title keeps step with the letter page's below 1200px and fills the
+   full column (so reaches --title-max) above it. */
+@media (min-width: 1200px) {
+  .impact-hero {
+    --hero-text-w: var(--wide);
+  }
+}
+.stats {
+  list-style: none;
+  margin: 0 0 1.75rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+}
+.stats li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-columns: subgrid;
+  grid-column: span 2;
+  column-gap: 1rem;
+  align-items: start;
+  padding: 1rem 0;
+  border-top: 1px solid currentColor;
+}
+.stat-n {
+  font-size: clamp(2rem, 8.5vw, 3rem);
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  display: block;
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+.stat-note {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.hero-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem 3rem;
+}
+.hero-foot .lede {
+  margin: 0;
+}
+.data-link {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.data-link a {
+  color: inherit;
+}
+@media (min-width: 720px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 2.5rem;
+  }
+  .stats li {
+    display: block;
+    grid-column: auto;
+    padding: 1rem 0 1.5rem;
+    border-top-width: 2px;
+  }
+  .stat-n {
+    display: block;
+    margin-bottom: 0.6rem;
+  }
+}
+@media (min-width: 1000px) {
+  .stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* The work: intro (with the founding marker, or a photo, beside it when there
+   is room), then the two lists side by side, their headings bottom-aligned on
+   one row so the rules and the lists line up whatever the headings' line
+   counts. */
+.work {
+  padding: 2rem 0 clamp(2.5rem, 6vw, 4rem);
+  background: var(--cream);
+}
+.work-intro {
+  display: grid;
+  gap: 2rem 3rem;
+  align-items: start;
+}
+.work-intro p {
+  max-width: var(--measure);
+}
+.since {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1.25rem 0 0;
+  max-width: 18rem;
+  border-top: var(--rule-heavy);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.since strong {
+  font-size: clamp(3rem, 10vw, 4.5rem);
+  line-height: 0.95;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+.photo {
+  margin: 1.75rem 0 0;
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.photo figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.work-grid {
+  display: grid;
+  gap: 2.5rem;
+  margin-top: 2.5rem;
+}
+.work-grid h2 {
+  font-size: clamp(1.3rem, 4.6vw, 1.6rem);
+  margin-bottom: 0.5rem;
+}
+.work-grid {
+  container-type: inline-size; /* the headings are sized from it, see below */
+}
+.facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.facts li {
+  padding: 1rem 0 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+.facts p {
+  margin: 0;
+}
+.fact-n {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: clamp(1.35rem, 4.5vw, 1.75rem);
+  font-stretch: 125%;
+  font-weight: 850;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  color: var(--green);
+}
+@media (min-width: 860px) {
+  .work-intro {
+    grid-template-columns: minmax(0, var(--measure)) 1fr;
+  }
+  .since {
+    justify-self: end;
+  }
+  .work-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 3rem;
+  }
+  .work-grid > div {
+    display: contents; /* the headings share row 1, the lists row 2 */
+  }
+  .work-grid > div > * {
+    grid-column: 1;
+  }
+  .work-grid > div:nth-child(2) > * {
+    grid-column: 2;
+  }
+  .work-grid h2 {
+    grid-row: 1;
+    align-self: end;
+  }
+  /* Sized so the longer heading ("tending our community") takes two lines in
+     its half of the grid, like the other one, instead of three. (Outranks
+     .impact main h2.) */
+  .impact main .work-grid h2 {
+    font-size: clamp(1.25rem, 2.55cqi, 2rem);
+  }
+  .work-grid .facts {
+    grid-row: 2;
+  }
+}
+
+/* Since 1994: the dark band. */
+.legacy {
+  padding: clamp(2.5rem, 6vw, 4rem) 0;
+  background: var(--ink);
+  color: var(--cream);
+  --focus: var(--cream);
+}
+.legacy .eyebrow {
+  color: var(--leaf);
+}
+.legacy a {
+  color: inherit;
+}
+.legacy-list {
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+.legacy-list li {
+  padding: 0.2rem 0 0.2rem 1.25rem;
+  border-left: 3px solid var(--leaf);
+}
+.legacy-list p {
+  margin: 0;
+}
+@media (min-width: 720px) {
+  .legacy-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 3rem;
+  }
+}
+
+/* How it works. */
+.how {
+  padding: clamp(2.5rem, 6vw, 4rem) 0;
+  background: var(--cream);
+}
+.how-list {
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+.how-list > li {
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+.how-list p {
+  margin: 0;
+}
+/* The four themed years: heading, the line about them, then icon tiles in a
+   row; the other two points go side by side underneath. */
+.how-years {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+.how-years p {
+  margin: 0 0 1rem;
+  max-width: var(--measure);
+}
+.years {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  max-width: 36rem;
+}
+.years li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.25rem 0.75rem;
+  border-radius: 8px;
+  background: var(--tint);
+  color: var(--green-deep);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.years svg {
+  color: var(--green);
+}
+.about-data {
+  margin: 2.5rem 0 0;
+  padding: 1rem 1.25rem;
+  max-width: var(--measure);
+  background: var(--tint);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+@media (min-width: 720px) {
+  .how-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 3rem;
+  }
+}
+
+/* The bridge back to signing: green, with the count and the button as in
+   the letter page's hero. */
+.bridge {
+  padding: clamp(2rem, 6vw, 4rem) 0;
+  background: var(--green);
+  color: var(--cream);
+  --hero-fg: var(--cream);
+  --mast-button-bg: var(--cream);
+  --mast-button-fg: var(--green);
+  --mast-button-hover: var(--white);
+  --focus: var(--cream);
+}
+.bridge .lede {
+  margin: 0;
+}
+.bridge .actions {
+  margin-top: 1.5rem; /* otherwise as the hero's (see .hero .actions) */
+}
+@media (min-width: 860px) {
+  .bridge-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+  }
+  .bridge .actions {
+    flex: none;
+    margin-top: 0;
+  }
+}
+
+/* The stories: the featured set on a full-width mint band, then all of them
+   as rows. */
+.voices {
+  padding-top: clamp(2.5rem, 6vw, 4rem);
+  background: var(--cream);
+}
+.stories-head {
+  margin-bottom: 1.75rem;
+}
+.stories-head p {
+  margin: 0;
+  max-width: 34em;
+  font-size: 1rem;
+}
+.featured {
+  padding: 1.75rem 0 2rem;
+  background: var(--mint);
+}
+.featured .story-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(26rem, 100%), 1fr));
+}
+.featured .story blockquote {
+  font-size: 1.0625rem;
+}
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.panel-head h3,
+.panel-status {
+  margin: 0;
+}
+.panel-status {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+.skeleton {
+  min-height: 9rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+.skeleton span {
+  display: block;
+  height: 0.8rem;
+  margin: 0.75rem 0;
+  border-radius: 4px;
+  background: var(--mint);
+}
+.skeleton .short {
+  width: 55%;
+}
+.all-stories {
+  padding: 2.5rem 0 3rem;
+}
+.all-stories h3 {
+  margin-bottom: 1.25rem;
+}
+.story-rows {
+  display: block;
+}
+.story-rows .story {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 0;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  border-radius: 0;
+}
+.story-rows li:first-child .story {
+  padding-top: 0;
+  border-top: 0;
+}
+.story-rows .read-more {
+  align-self: flex-start; /* not stretched to the row, which would centre its text */
+}
+.story-rows figcaption {
+  order: -1; /* who wrote it, then the story */
+  margin: 0 0 0.6rem;
+  padding: 0;
+  border: 0;
+}
+/* "Show 10 more" on the left, "Add my name" on the right; stacked on phones. */
+.stories-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+.stories-foot .more-button,
+.stories-foot .stories-cta {
+  flex: 1 1 100%; /* each on its own row on phones, buttons full width */
+  margin: 0;
+  text-align: left;
+}
+.stories-foot .stories-cta {
+  margin-left: auto;
+}
+.stories-foot .button {
+  text-align: center;
+}
+.more-button .shown {
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+.notice {
+  padding: 1.25rem var(--gutter) 1.5rem;
+  margin-bottom: 3rem;
+  background: var(--surface);
+  border-radius: 12px;
+}
+.stories-empty {
+  border: 2px dashed var(--sage);
+}
+.notice h3 {
+  margin-bottom: 0.75rem;
+}
+.notice p:last-child {
+  margin: 0;
+}
+.notice .button,
+.stories-cta .button {
+  width: 100%;
+}
+.voices .undersigned-fix {
+  margin: 0;
+  padding-bottom: 3rem;
+}
+@media (min-width: 560px) {
+  .notice .button,
+  .stories-cta .button {
+    width: auto;
+  }
+  .stories-foot .more-button,
+  .stories-foot .stories-cta {
+    flex: 0 1 auto;
+  }
+  .more-button .shown {
+    display: inline-block;
+    margin: 0 0 0 1rem;
+  }
+}
+@media (min-width: 720px) {
+  .notice {
+    padding: 1.75rem 2rem 2rem;
+  }
+  .story-rows .story {
+    display: grid;
+    grid-template-columns: minmax(10rem, 14rem) 1fr;
+    column-gap: 2.5rem;
+    align-items: start;
+  }
+  .story-rows figcaption {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .story-rows blockquote,
+  .story-rows .read-more {
+    grid-column: 2;
+  }
+  .story-rows .read-more {
+    justify-self: start;
+    margin-top: 0.5rem;
+  }
 }
 
 /* ---- Print: the letter and its references, nothing else ---------------- */
@@ -924,8 +1519,22 @@ sup.cite a.is-open {
   .sheet,
   .sheet-backdrop,
   .cite-pop,
-  .backref {
+  .backref,
+  .page-tabs,
+  .bridge,
+  .pager,
+  .more-button,
+  .stories-cta,
+  .skeleton {
     display: none !important;
+  }
+  .legacy,
+  .voices {
+    background: none;
+    color: var(--ink);
+  }
+  .legacy .eyebrow {
+    color: var(--ink);
   }
   .site-footer {
     background: none;

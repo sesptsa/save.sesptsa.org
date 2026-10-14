@@ -5,8 +5,10 @@ served by GitHub Pages at https://save.sesptsa.org.
 
 ## Stack
 
-- Plain HTML/CSS plus one small vanilla script (`script.js`: sticky bar, citation
-  popovers/sheet, form-submit scroll, the signers list). No framework. Keep it that way.
+- Plain HTML/CSS plus three small vanilla scripts, no framework: `signers.js`
+  (shared: the feed fetch, the count, story cards), `script.js` (the letter page:
+  sticky bar, citation popovers/sheet, form-submit scroll, the signers list) and
+  `impact.js` (the impact page's stories). Keep it that way.
 - Pages serves the files exactly as committed. `package.json` holds dev tooling only
   (`npm run dev` = Vite dev server, `npm run lint` = Oxlint, `npm run format` =
   Prettier). **Never add a build script**: nothing may depend on a transform step,
@@ -21,7 +23,11 @@ served by GitHub Pages at https://save.sesptsa.org.
 
 ## Layout
 
-- `index.html` — the page: hero, the letter (`<article class="letter">`), references
+- Two pages, `/` (the letter) and `/impact/`, with the same header, footer and
+  tokens. The header's nav (`.site-nav`) shows from 720px; below that each page
+  has a `.page-tabs` row at the top of its hero. Mark the current page with
+  `aria-current="page"` in both. Cross-page links are root-relative (`/#sign`).
+- `index.html` — the letter page: hero, the letter (`<article class="letter">`), references
   (`<details>`), embedded Google Form. The letter HTML was generated from the Google
   Docs export of the FINAL tab by `tools/letter2html.py` (its docstring has the
   update steps); citation markers are `<sup class="cite">` linking to `#ref-N`, and
@@ -30,7 +36,7 @@ served by GitHub Pages at https://save.sesptsa.org.
   count in the hero. Both are filled by `script.js` from the JSON feed, whose URL is
   the `<link rel="preload" id="signers-feed">` in `<head>` (preloaded because Apps
   Script takes 1–2 s). The section stays hidden until it loads; the hero count
-  shows a floor ("1,000+") at once, then the visitor's last-seen count, then the
+  shows a floor ("1,300+", in both pages) at once, then the visitor's last-seen count, then the
   live one. Raise the floor as the count grows (both spans; see the comment in
   `style.css`), never above the real count. The feed is a
   Google Apps Script web app on the form's responses spreadsheet; its source and
@@ -38,7 +44,23 @@ served by GitHub Pages at https://save.sesptsa.org.
   ("Name ok", "Story ok", "Feature?"), so the data never touches this repo; Name ok
   can be ticked automatically on new signatures, Story ok is always a volunteer's. Names go out as "First L." until full names are approved
   (`FULL_NAMES` in the script). Feed text is public input: insert it with `textContent` only.
-- `script.js` — see above.
+  Each story carries `featured` (the "Feature?" tick); the pages order them
+  themselves, featured first in a fresh random order per visit (`signers.js`), since
+  the feed is cached for minutes and can't shuffle per visitor.
+- `impact/index.html`, `impact.js` — the impact page: Hanna's "Place-Based
+  Education in Action" copy (hero numbers, the work, the dark "since 1994" band,
+  how it works, about the data), a green bridge back to `/#sign`, then the stories
+  from the feed: Featured, six on a full-width mint band ("More stories" adds six
+  more, the featured ones first, then the rest; any six if nothing is featured
+  yet), and All stories newest first, 10 at a time. Stories up to 800 characters
+  show whole there; longer ones are cut at a sentence near 600 (`LIMITS` in
+  `impact.js`; `signers.js` cuts at a sentence too, with the letter page's
+  smaller limits). Loading, empty and error states are
+  in the HTML. The photo slot is commented out until there are cleared photos;
+  a "1994" marker fills its place beside the intro.
+  The page's styles are the "Impact page" block in `style.css` (`.impact-col` is its
+  column; the extra tokens `--leaf`, `--mint`, `--sage`).
+- `script.js`, `signers.js` — see above.
 - `package.json`, `.oxlintrc.json`, `.prettierrc`, `.prettierignore` — dev tooling only.
 - `style.css` — tokens at the top. `--green: #007108` is August's artwork green;
   everything green on the page uses it.
@@ -52,8 +74,13 @@ served by GitHub Pages at https://save.sesptsa.org.
   `assets/save-ses.jpg` — the square green original, not used by the page (handy
   for square social posts).
 - Theme: the header and hero colourway is a token set in `style.css` (`--header-*`,
-  `--hero-*`, `--mast-*`). `<html data-theme="green">` is cream on green; without the
-  attribute it is ink on cream. Nothing below the hero changes between them.
+  `--hero-*`, `--mast-*`). `<html data-theme="green">` is cream (`--cream`) on green;
+  without the attribute it is ink on cream. Nothing below the hero changes between
+  them. The artwork is a CSS mask filled with `--hero-fg`, so it follows the theme.
+- Page titles are sized from their column (`--title-scale`, so "ENVIRONMENTAL"
+  always fits) up to `--title-max` (4rem). From 1200px the letter hero's text column
+  is what's left beside the artwork (`--hero-art-w`), and the impact hero uses the
+  full column, so both reach about the maximum there.
   `assets/sunnyside-by-the-numbers.pdf` — Hanna's one-page fact sheet, linked under the letter.
 
 ## Rules
@@ -67,4 +94,5 @@ served by GitHub Pages at https://save.sesptsa.org.
 - Content changes go through the communications group (Hanna) before publishing.
   Dan can ship structural and technical changes directly.
 - Mobile first; most visitors arrive from a phone via QR or a Konstella link.
-- Verify in a real browser at 390px and 1200px before pushing anything visual.
+- Verify in a real browser at 390px and 1200px before pushing anything visual,
+  on both pages when the shared CSS or scripts change.

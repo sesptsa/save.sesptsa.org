@@ -25,7 +25,9 @@
  *             shouldn't show.
  *   Story ok  The impact answer can be shown. Leave unticked if it names a
  *             child, a staff member, or anything private.
- *   Feature?  Put the story first.
+ *   Feature?  Put the story first. On the letter page the featured stories lead,
+ *             in a fresh random order each visit; the impact page shows them
+ *             six at a time the same way, then the rest.
  * Any tab with a "Name ok" column is read and counted, so the earlier
  * petition's names can sit in their own tab. Columns are found by their header
  * text, so reordering columns or adding form questions doesn't break anything: the name is the
@@ -214,9 +216,11 @@ function buildFeedOnce_(waitMs) {
   }
 }
 
-// { count, names: [{ name, connection }], stories: [{ name, connection, story }] }
+// { count, names: [{ name, connection }], stories: [{ name, connection, story, featured }] }
 // count: every different non-empty name, ticked or not. names: ticked, each
-// name once, newest first. stories: ticked, featured first, then newest first.
+// name once, newest first. stories: ticked, newest first, each flagged
+// featured or not; the pages put the featured ones first themselves, shuffled
+// per visit (signers.js), which a feed cached for FRESH_SECONDS can't do.
 function buildFeed_(sheets) {
   var signed = {}; // nameKey_ -> true, for the count
   var rows = [];
@@ -267,9 +271,6 @@ function buildFeed_(sheets) {
   var stories = rows.filter(function (r) {
     return r.story;
   });
-  stories.sort(function (a, b) {
-    return Number(b.featured) - Number(a.featured) || b.time - a.time || a.order - b.order;
-  });
   var listed = {};
   return {
     count: Object.keys(signed).length,
@@ -284,7 +285,12 @@ function buildFeed_(sheets) {
         return { name: shown_(r.name), connection: r.connection };
       }),
     stories: stories.map(function (r) {
-      return { name: shown_(r.name), connection: r.connection, story: r.story };
+      return {
+        name: shown_(r.name),
+        connection: r.connection,
+        story: r.story,
+        featured: r.featured,
+      };
     }),
   };
 }
