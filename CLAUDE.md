@@ -93,7 +93,7 @@ served by GitHub Pages at https://save.sesptsa.org.
   `assets/sunnyside-by-the-numbers.pdf` — Hanna's one-page fact sheet, linked under the letter
   and on `/resources/`.
 - The other downloads on `/resources/`: `assets/sunnyside-letter-to-pps-board.pdf`,
-  `assets/place-based-education-in-action-2025-26.pdf`, the flyers
+  `assets/place-based-education-in-action.pdf`, the flyers
   (`assets/save-ses-flyer*.pdf`), `assets/save-ses-logo.png` (Hanna's green square)
   and `assets/save-ses-logo-transparent.{svg,png}` (from `save-ses.svg`: white →
   green, the green ground and circle removed; the PNG rendered at 2048px with

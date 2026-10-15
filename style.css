@@ -1583,6 +1583,9 @@ sup.cite a.is-open {
   padding: 1.1rem 0;
   border-bottom: 1px solid var(--rule);
 }
+.file:last-child {
+  border-bottom: 0; /* the next section's heavy rule follows */
+}
 .file-preview {
   display: block;
   align-self: start;
@@ -1629,6 +1632,7 @@ sup.cite a.is-open {
 .file-open {
   display: inline-flex;
   align-items: center;
+  gap: 0.3rem;
   min-height: 44px;
   color: var(--ink);
   font-size: 0.9375rem;
@@ -1636,6 +1640,11 @@ sup.cite a.is-open {
 }
 .file-open:hover {
   color: var(--green-deep);
+}
+/* "Open" goes to a new tab, so it carries the external-link arrow. */
+.file-open svg {
+  width: 15px;
+  height: 15px;
 }
 @media (min-width: 600px) {
   .files {
