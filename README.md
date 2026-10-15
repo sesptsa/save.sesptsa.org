@@ -7,8 +7,9 @@ on the site.
 
 ## how it works
 
-- static pages served by github pages: the letter at `/` and the impact page at
-  `/impact/`. whatever is on `main` is live within a minute or two.
+- static pages served by github pages: the letter at `/`, the impact page at
+  `/impact/`, and flyers, data sheets and the logo to print at `/resources/`.
+  whatever is on `main` is live within a minute or two.
 - the letter lives in a google doc and gets converted to HTML w
   `tools/letter2html.py`.
 - signatures go to a google form owned by the PTSA and are never stored in this

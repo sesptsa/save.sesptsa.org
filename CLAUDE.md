@@ -23,8 +23,8 @@ served by GitHub Pages at https://save.sesptsa.org.
 
 ## Layout
 
-- Two pages, `/` (the letter) and `/impact/`, with the same header, footer and
-  tokens. The header's nav (`.site-nav`) shows from 720px; below that each page
+- Three pages, `/` (the letter), `/impact/` and `/resources/`, with the same
+  header, footer and tokens. The header's nav (`.site-nav`) shows from 720px; below that each page
   has a `.page-tabs` row at the top of its hero. Mark the current page with
   `aria-current="page"` in both. Cross-page links are root-relative (`/#sign`).
 - `index.html` — the letter page: hero, the letter (`<article class="letter">`), references
@@ -36,7 +36,7 @@ served by GitHub Pages at https://save.sesptsa.org.
   count in the hero. Both are filled by `script.js` from the JSON feed, whose URL is
   the `<link rel="preload" id="signers-feed">` in `<head>` (preloaded because Apps
   Script takes 1–2 s). The section stays hidden until it loads; the hero count
-  shows a floor ("1,300+", in both pages) at once, then the visitor's last-seen count, then the
+  shows a floor ("1,400+", in both pages) at once, then the visitor's last-seen count, then the
   live one. Raise the floor as the count grows (both spans; see the comment in
   `style.css`), never above the real count. The feed is a
   Google Apps Script web app on the form's responses spreadsheet; its source and
@@ -60,6 +60,15 @@ served by GitHub Pages at https://save.sesptsa.org.
   a "1994" marker fills its place beside the intro.
   The page's styles are the "Impact page" block in `style.css` (`.impact-col` is its
   column; the extra tokens `--leaf`, `--mint`, `--sage`).
+- `resources/index.html` — "Print & share": the letter and the two data sheets as
+  PDFs, the flyers, and the logo. Static, no script. No hero: on phones the page
+  tabs sit on a green band (`.tabs-band`) under the header. Each file is a row on
+  phones and a card from 600px, with a preview of page 1 of its PDF. The
+  meta line (pages, size) is typed by hand. To add or replace a file: put the PDF
+  in `assets/`, then render its previews (a 300 and an 800px wide WebP each):
+  `pdftoppm -f 1 -l 1 -singlefile -scale-to-x 800 -scale-to-y -1 -png in.pdf out`,
+  then `cwebp -q 80 out.png -o assets/previews/<name>-800.webp`; the same for
+  the 300px one. Styles: the "Resources page" block in `style.css`.
 - `script.js`, `signers.js` — see above.
 - `package.json`, `.oxlintrc.json`, `.prettierrc`, `.prettierignore` — dev tooling only.
 - `style.css` — tokens at the top. `--green: #007108` is August's artwork green;
@@ -67,7 +76,7 @@ served by GitHub Pages at https://save.sesptsa.org.
 - `sign/index.html` — redirect to the Google Form (meta refresh + JS + visible link).
   `/sign/` is the stable link used in messages; the QR code points at the root.
 - `assets/save-ses.svg` — vector artwork (converted from August's PDF; type is outlined),
-  white on transparent. `assets/save-ses-mask.svg` — the same shapes in black, used as a
+  white on a green square. `assets/save-ses-mask.svg` — the same shapes in black, used as a
   CSS mask so the hero draws the artwork in the theme's colour. `assets/save-ses-ink.svg`
   — recoloured to `--ink`, for the favicon. `assets/save-ses-share.jpg` — the
   `og:image`: the artwork centred on 1200×630 green, rendered from the SVG.
@@ -81,7 +90,14 @@ served by GitHub Pages at https://save.sesptsa.org.
   always fits) up to `--title-max` (4rem). From 1200px the letter hero's text column
   is what's left beside the artwork (`--hero-art-w`), and the impact hero uses the
   full column, so both reach about the maximum there.
-  `assets/sunnyside-by-the-numbers.pdf` — Hanna's one-page fact sheet, linked under the letter.
+  `assets/sunnyside-by-the-numbers.pdf` — Hanna's one-page fact sheet, linked under the letter
+  and on `/resources/`.
+- The other downloads on `/resources/`: `assets/sunnyside-letter-to-pps-board.pdf`,
+  `assets/place-based-education-in-action-2025-26.pdf`, the flyers
+  (`assets/save-ses-flyer*.pdf`), `assets/save-ses-logo.png` (Hanna's green square)
+  and `assets/save-ses-logo-transparent.{svg,png}` (from `save-ses.svg`: white →
+  green, the green ground and circle removed; the PNG rendered at 2048px with
+  `rsvg-convert`). Previews in `assets/previews/`.
 
 ## Rules
 

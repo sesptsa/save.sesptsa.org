@@ -357,11 +357,11 @@ p {
   }
 }
 /* The running signature count, ruled off from "Add my name". It shows a
-   floor ("1,300+", in index.html and impact/index.html) at once, then the visitor's last-seen count,
+   floor ("1,400+", in index.html and impact/index.html) at once, then the visitor's last-seen count,
    then the live one when the feed answers. The hidden .count-sizer keeps the
    floor's width, and with tabular figures any 4-digit count is narrower, so the
    button never moves. Raise the floor in both spans as the count grows (keep
-   it at or below the real count). The font size is set so "1,300+" and the
+   it at or below the real count). The font size is set so "1,400+" and the
    button share one row at 360px; check that again if the floor reaches
    "10,000+". */
 .signed-count {
@@ -1507,6 +1507,245 @@ sup.cite a.is-open {
     justify-self: start;
     margin-top: 0.5rem;
   }
+}
+
+/* ---- Resources page (resources/index.html) -------------------------------
+   Print & share: the files on cream under the header, no hero. One column, the
+   header's width. Each file is a row (preview beside the text) on phones and a
+   card (preview on top) from 600px. */
+.resources main {
+  background: var(--cream);
+}
+/* Phones: the page tabs on a green band under the header, as the other pages'
+   tabs sit at the top of their heroes. */
+.tabs-band {
+  background: var(--hero-bg);
+  color: var(--hero-fg);
+  padding-top: 0.5rem;
+  --focus: var(--mast-focus);
+}
+.tabs-band .page-tabs {
+  margin-block: 0;
+}
+@media (min-width: 720px) {
+  .tabs-band {
+    display: none;
+  }
+}
+.resources-inner {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 5vw, 3.25rem);
+  padding: clamp(1.75rem, 5vw, 3.5rem) 0 clamp(2.5rem, 6vw, 5rem);
+}
+.resources-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem 3rem;
+}
+.resources-head h1 {
+  font-size: clamp(2rem, 4.6vw, var(--title-max));
+  line-height: 0.98;
+}
+.resources-head .lede {
+  margin: 0;
+  max-width: 30em;
+  font-size: 1.05em;
+  line-height: 1.5;
+}
+.resources-section > h2 {
+  padding-top: 1.25rem;
+  border-top: var(--rule-heavy);
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  line-height: 1.1;
+}
+.resources-section > p {
+  margin: 1rem 0 0;
+}
+.resources main h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.file {
+  display: grid;
+  grid-template-columns: 5.25rem minmax(0, 1fr);
+  gap: 0.75rem 1rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.file-preview {
+  display: block;
+  align-self: start;
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgb(30 58 47 / 0.12);
+  overflow: hidden;
+}
+.file-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.file-text p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.file-text .file-meta {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.file-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+}
+.file-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  font-size: 0.9375rem;
+}
+.file-actions svg {
+  width: 18px;
+  height: 18px;
+}
+.file-open {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+.file-open:hover {
+  color: var(--green-deep);
+}
+@media (min-width: 600px) {
+  .files {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1.75rem;
+    margin-top: 1.5rem;
+  }
+  .file {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    gap: 0.75rem;
+    padding: 0;
+    border: 0;
+  }
+  .file-preview {
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgb(30 58 47 / 0.12);
+    transition: box-shadow 0.15s ease;
+  }
+  .file-preview:hover {
+    box-shadow: 0 6px 20px rgb(30 58 47 / 0.2);
+  }
+  .resources main h3 {
+    font-size: 1.15rem;
+  }
+  .file-text p {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  .file-text .file-meta {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+.print-tip {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+  margin: 1.5rem 0 0;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  background: var(--mint);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.print-tip svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 0.1em;
+}
+@media (min-width: 600px) {
+  .print-tip {
+    margin-top: 2.5rem;
+    font-size: 0.9375rem;
+  }
+}
+
+.logos {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 15rem));
+  gap: 0.75rem 1.25rem;
+}
+.logos img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.resources .logos h3 {
+  margin-top: 0.6rem;
+}
+/* The transparent logo on a checkerboard, so its edges read as clear. */
+.logo-clear {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: repeating-conic-gradient(#e6e9e1 0 25%, var(--white) 0 50%) 0 0 / 16px 16px;
+}
+.logo-clear img {
+  width: 88%;
+}
+.logo-links {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+.logo-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.resources-help {
+  margin: 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+.resources-help a {
+  color: var(--ink);
+  font-weight: 650;
 }
 
 /* ---- Print: the letter and its references, nothing else ---------------- */
