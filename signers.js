@@ -1,8 +1,10 @@
 // Save Sunnyside — the signers feed, shared by the letter page (script.js) and
 // the impact page (impact.js): fetching it, the running count, and the story
-// cards. Loaded before either page script; it defines window.SaveSES and
-// nothing else. Everything in the feed is text typed by the public, so it only
-// ever goes into the page via textContent.
+// cards. The take-action page (take-action.js) uses the fetch and the helpers
+// for its events feed, which the same Apps Script serves. Loaded before each
+// page script; it defines window.SaveSES and nothing else. Everything in the
+// feeds is text typed by the public or by volunteers, so it only ever goes into
+// the page via textContent.
 window.SaveSES = (function () {
   "use strict";
 
@@ -36,7 +38,7 @@ window.SaveSES = (function () {
     });
   }
 
-  // The count shows a floor ("1,400+", in the HTML) at once, then this
+  // The count shows a floor ("2,000+", in the HTML) at once, then this
   // visitor's last-seen count, then the live one. Storage can be unavailable
   // (private mode, blocked site data); the floor then just stays.
   function showLastCount(valueEl) {
@@ -156,6 +158,7 @@ window.SaveSES = (function () {
     rememberCount: rememberCount,
     nameItem: nameItem,
     storyItem: storyItem,
+    shorten: shorten,
     fillList: fillList,
     focusItem: focusItem,
     shuffle: shuffle,

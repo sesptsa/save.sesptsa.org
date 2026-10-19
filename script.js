@@ -177,7 +177,7 @@
   /* ---- The undersigned ------------------------------------------------ */
   // The feed (signers.js) serves the count plus only the names and stories
   // PTSA volunteers have approved. It takes a second or more, so the hero
-  // shows a floor ("1,400+") or this visitor's last-seen count meanwhile, and
+  // shows a floor ("2,000+") or this visitor's last-seen count meanwhile, and
   // the section stays hidden until it loads.
   var S = window.SaveSES;
   var undersigned = document.getElementById("undersigned");

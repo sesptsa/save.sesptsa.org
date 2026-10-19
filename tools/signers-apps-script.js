@@ -61,6 +61,29 @@
  * Ticks show up on the site within FRESH_SECONDS. With auto-tick on, a new
  * signature rebuilds the feed, so it shows on the next page load.
  *
+ * Events (the take-action page) come from a tab named "Events" in the same
+ * spreadsheet, so volunteers keep the list current without a site deploy.
+ * Set it up once with Events > Set up the Events tab, which adds the headers
+ * (found by their text, like the signers' columns), a date picker, the "Show
+ * on site" checkboxes and a note on each header:
+ *   Date          When. Events leave the site the day after their date.
+ *   Time          As it should read: "6–8 PM", "12:45 PM". Optional.
+ *   Title         "PPS Board Meeting".
+ *   Where         "Hosford MS", "501 N Dixon St". Optional.
+ *   Map link      A map (or venue) URL; makes Where a link. Optional.
+ *   Details       A sentence or a short paragraph. Optional.
+ *   Link text     "RSVP", "Event details". Optional; "Details" if blank.
+ *   Link URL      Must start with http:// or https://, else no link.
+ *   Highlight     Tick to give the event a green edge on the site.
+ *   Show on site  Nothing is public until this is ticked.
+ * The page asks for the feed with ?feed=events and gets only
+ * { events: [{ date: "2026-10-21", time, title, place, placeUrl, details,
+ *   link: { text, url } | null, featured }] },
+ * in date order, dated yesterday or later (the page drops the rest by its own
+ * clock). Both feeds come from the same build and cache, so an event shows
+ * within FRESH_SECONDS; editing the Events tab also marks the cache stale
+ * (onEdit), so the next page load rebuilds and shows it.
+ *
  * Only one build runs at a time (each reads every signatures tab). A visitor
  * who finds the feed stale gets the old copy at once while one request
  * rebuilds it; only when nothing is cached do requests wait for that build.
@@ -87,28 +110,122 @@ var FRESH_SECONDS = 300; // older than this, the next request rebuilds the feed
 var KEEP_SECONDS = 21600; // the longest the cache keeps anything; stale copies are served meanwhile
 var CHUNK = 30000; // characters per cache entry; the cache caps each entry at 100 KB
 
+var EVENTS_TAB = "Events";
+var EVENT_COLUMNS = {
+  date: "Date",
+  time: "Time",
+  title: "Title",
+  place: "Where",
+  placeUrl: "Map link",
+  details: "Details",
+  linkText: "Link text",
+  linkUrl: "Link URL",
+  featured: "Highlight",
+  show: "Show on site",
+};
+var EVENT_NOTES = {
+  Date: "When it is. The event leaves the site the day after this date.",
+  Time: "As it should read on the site: 6–8 PM, 12:45 PM. Leave blank if there isn't one.",
+  Title: "PPS Board Meeting, Community Walk, ...",
+  Where: "Hosford MS, 501 N Dixon St, Online. Optional.",
+  "Map link": "A Google Maps (or venue) link; Where becomes a link to it. Optional.",
+  Details: "A sentence or a short paragraph. Optional.",
+  "Link text": 'RSVP, Event details, ... Shows as a button. Blank with a URL reads "Details".',
+  "Link URL": "Starts with https:// (or http://), else there is no link.",
+  Highlight: "Tick for the events that matter most: they get a green edge on the site.",
+  "Show on site": "Nothing is public until this is ticked. Untick to take an event down.",
+};
+
+// ?feed=events serves the Events tab only (the take-action page); anything
+// else serves the signers feed.
 // oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
-function doGet() {
+function doGet(e) {
+  var wantEvents = Boolean(e && e.parameter && e.parameter.feed === "events");
   var cached = readFeed_();
-  var json = cached && cached.json;
+  var feed = cached;
   if (!cached || Date.now() - cached.builtAt > FRESH_SECONDS * 1000) {
     // Stale: rebuild unless another request already is, and serve the old copy
     // either way. Nothing cached: wait for whichever build is running.
-    json = buildFeedOnce_(cached ? 0 : 60000) || json;
+    feed = buildFeedOnce_(cached ? 0 : 60000) || cached;
   }
-  if (!json) throw new Error("The signers feed is still building; try again shortly.");
-  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+  if (!feed) throw new Error("The feed is still building; try again shortly.");
+  return ContentService.createTextOutput(wantEvents ? feed.events : feed.json).setMimeType(
+    ContentService.MimeType.JSON,
+  );
 }
 
 // oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
 function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu("Signers")
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu("Signers")
     .addItem("Add review columns to this tab", "addReviewColumns")
     .addSeparator()
     .addItem("Tick Name ok on new signatures", "startAutoTick")
     .addItem("Stop ticking new signatures", "stopAutoTick")
     .addToUi();
+  ui.createMenu("Events").addItem("Set up the Events tab", "addEventsTab").addToUi();
+}
+
+// An edit on the Events tab marks the cache stale, so the next page load
+// rebuilds the feed (serving the old copy to anyone else meanwhile) and the
+// change shows right away rather than within FRESH_SECONDS. A simple trigger:
+// it runs as whoever edits, with no authorization, which the cache doesn't
+// need; anything that goes wrong here must never bother the editor.
+// oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
+function onEdit(e) {
+  try {
+    if (e && e.range && e.range.getSheet().getName() === EVENTS_TAB) {
+      CacheService.getScriptCache().put("feed:at", "1", KEEP_SECONDS);
+    }
+  } catch (err) {
+    console.warn(err);
+  }
+}
+
+// Makes the Events tab, or completes it: any missing header goes at the
+// right, with its note, the date picker on Date and checkboxes on Show on
+// site. Safe to run again.
+// oxlint-disable-next-line no-unused-vars -- Apps Script calls it by name
+function addEventsTab() {
+  var ss = SpreadsheetApp.getActive();
+  var sheet = ss.getSheetByName(EVENTS_TAB) || ss.insertSheet(EVENTS_TAB);
+  var rows = Math.max(sheet.getMaxRows(), 200);
+  if (sheet.getMaxRows() < rows)
+    sheet.insertRowsAfter(sheet.getMaxRows(), rows - sheet.getMaxRows());
+  var lastCol = Math.max(sheet.getLastColumn(), 1);
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(clean_);
+  Object.keys(EVENT_COLUMNS).forEach(function (key) {
+    var title = EVENT_COLUMNS[key];
+    var col = headers.indexOf(title) + 1;
+    if (!col) {
+      col = sheet.getLastColumn() + 1;
+      sheet.getRange(1, col).setValue(title);
+      headers[col - 1] = title;
+    }
+    var header = sheet.getRange(1, col);
+    header.setNote(EVENT_NOTES[title]).setFontWeight("bold");
+    var cells = sheet.getRange(2, col, rows - 1, 1);
+    if (key === "date") {
+      cells
+        .setDataValidation(SpreadsheetApp.newDataValidation().requireDate().build())
+        .setNumberFormat("ddd, mmm d, yyyy");
+      sheet.setColumnWidth(col, 150);
+    } else if (key === "show" || key === "featured") {
+      cells.setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
+    } else if (key === "details") {
+      cells.setWrap(true);
+      sheet.setColumnWidth(col, 360);
+    } else if (key === "title" || key === "place" || key === "placeUrl" || key === "linkUrl") {
+      sheet.setColumnWidth(col, 240);
+    }
+  });
+  sheet.setFrozenRows(1);
+  ss.setActiveSheet(sheet);
+  ss.toast(
+    "One event per row; tick Show on site when it's ready. It shows on the site on the next page load.",
+    "Events",
+    10,
+  );
 }
 
 // Installs the form-submit trigger that runs tickNameOk. Safe to click twice.
@@ -171,14 +288,14 @@ function addReviewColumns() {
   });
 }
 
-// { json, builtAt } from the cache, or null. builtAt is when that build
-// started reading the sheet.
+// { json, events, builtAt } from the cache, or null: the signers feed, the
+// events feed, and when that build started reading the sheet.
 function readFeed_() {
   var cache = CacheService.getScriptCache();
-  var head = cache.getAll(["feed:n", "feed:at"]);
+  var head = cache.getAll(["feed:n", "feed:at", "feed:events"]);
   var n = Number(head["feed:n"]);
   var builtAt = Number(head["feed:at"]);
-  if (!n || !builtAt) return null;
+  if (!n || !builtAt || !head["feed:events"]) return null;
   var keys = [];
   for (var i = 0; i < n; i++) keys.push("feed:" + i);
   var parts = cache.getAll(keys);
@@ -188,32 +305,101 @@ function readFeed_() {
       return parts[k];
     })
     .join("");
-  return { json: json, builtAt: builtAt };
+  return { json: json, events: head["feed:events"], builtAt: builtAt };
 }
 
-// Builds the feed and caches it, one build at a time. If another build is
+// Builds both feeds and caches them, one build at a time. If another build is
 // running, waits up to waitMs for it and returns its result if it started
 // after this call did (so it includes any row written just before); otherwise
-// builds again. Returns null if it couldn't get a turn in time.
+// builds again. Returns { json, events, builtAt }, or null if it couldn't get
+// a turn in time.
 function buildFeedOnce_(waitMs) {
   var asked = Date.now();
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(waitMs)) return null;
   try {
     var cached = readFeed_();
-    if (cached && cached.builtAt >= asked) return cached.json;
+    if (cached && cached.builtAt >= asked) return cached;
     var started = Date.now();
-    var json = JSON.stringify(buildFeed_(SpreadsheetApp.getActiveSpreadsheet().getSheets()));
-    var entries = { "feed:at": String(started) };
+    var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+    var json = JSON.stringify(buildFeed_(sheets));
+    var events = JSON.stringify({ events: readEvents_(sheets) });
+    var entries = { "feed:at": String(started), "feed:events": events };
     var count = Math.ceil(json.length / CHUNK);
     for (var j = 0; j < count; j++) entries["feed:" + j] = json.slice(j * CHUNK, (j + 1) * CHUNK);
     entries["feed:n"] = String(count);
     CacheService.getScriptCache().putAll(entries, KEEP_SECONDS);
     console.log("Feed built in " + (Date.now() - started) + " ms, " + json.length + " characters");
-    return json;
+    return { json: json, events: events, builtAt: started };
   } finally {
     lock.releaseLock();
   }
+}
+
+// The Events tab's ticked rows, dated yesterday or later, in date order (rows
+// on one day keep the sheet's order). Text columns are read as displayed, so
+// a time typed as a time still reads "6:00 PM".
+function readEvents_(sheets) {
+  var sheet = sheets.filter(function (s) {
+    return s.getName() === EVENTS_TAB;
+  })[0];
+  if (!sheet) return [];
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+  if (lastRow < 2) return [];
+  var range = sheet.getRange(1, 1, lastRow, lastCol);
+  var values = range.getValues();
+  var shown = range.getDisplayValues();
+  var headers = values[0].map(clean_);
+  var col = {};
+  Object.keys(EVENT_COLUMNS).forEach(function (key) {
+    col[key] = headers.indexOf(EVENT_COLUMNS[key]);
+  });
+  if (col.date < 0 || col.title < 0) return [];
+  var tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  var yesterday = Utilities.formatDate(new Date(Date.now() - 86400000), tz, "yyyy-MM-dd");
+  var text = function (row, key) {
+    return col[key] >= 0 ? clean_(shown[row][col[key]]) : "";
+  };
+  var events = [];
+  for (var r = 1; r < values.length; r++) {
+    if (col.show < 0 || !ticked_(values[r][col.show])) continue;
+    var date = isoDate_(values[r][col.date], tz);
+    var title = text(r, "title");
+    if (!date || !title || date < yesterday) continue;
+    var url = httpUrl_(text(r, "linkUrl"));
+    events.push({
+      date: date,
+      time: text(r, "time"),
+      title: title,
+      place: text(r, "place"),
+      placeUrl: httpUrl_(text(r, "placeUrl")),
+      details: col.details >= 0 ? cleanStory_(shown[r][col.details]) : "",
+      link: url ? { text: text(r, "linkText") || "Details", url: url } : null,
+      featured: col.featured >= 0 && ticked_(values[r][col.featured]),
+      order: r,
+    });
+  }
+  events.sort(function (a, b) {
+    return a.date < b.date ? -1 : a.date > b.date ? 1 : a.order - b.order;
+  });
+  return events.map(function (e) {
+    delete e.order;
+    return e;
+  });
+}
+
+// The URL if it is an http(s) one, else "".
+function httpUrl_(url) {
+  return /^https?:\/\//i.test(url) ? url : "";
+}
+
+// A date cell (or a date typed as text) as "yyyy-MM-dd" in the sheet's time
+// zone; "" if it isn't one.
+function isoDate_(v, tz) {
+  var d = v && typeof v.getTime === "function" ? v : clean_(v) ? new Date(clean_(v)) : null;
+  if (!d || isNaN(d.getTime())) return "";
+  return Utilities.formatDate(d, tz, "yyyy-MM-dd");
 }
 
 // { count, names: [{ name, connection }], stories: [{ name, connection, story, featured }] }

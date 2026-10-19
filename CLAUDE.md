@@ -5,10 +5,11 @@ served by GitHub Pages at https://save.sesptsa.org.
 
 ## Stack
 
-- Plain HTML/CSS plus three small vanilla scripts, no framework: `signers.js`
+- Plain HTML/CSS plus four small vanilla scripts, no framework: `signers.js`
   (shared: the feed fetch, the count, story cards), `script.js` (the letter page:
-  sticky bar, citation popovers/sheet, form-submit scroll, the signers list) and
-  `impact.js` (the impact page's stories). Keep it that way.
+  sticky bar, citation popovers/sheet, form-submit scroll, the signers list),
+  `impact.js` (the impact page's stories) and `take-action.js` (the take-action
+  page's events, key dates and copy button). Keep it that way.
 - Pages serves the files exactly as committed. `package.json` holds dev tooling only
   (`npm run dev` = Vite dev server, `npm run lint` = Oxlint, `npm run format` =
   Prettier). **Never add a build script**: nothing may depend on a transform step,
@@ -23,8 +24,10 @@ served by GitHub Pages at https://save.sesptsa.org.
 
 ## Layout
 
-- Three pages, `/` (the letter), `/impact/` and `/resources/`, with the same
-  header, footer and tokens. The header's nav (`.site-nav`) shows from 720px; below that each page
+- Four pages, `/` (the letter), `/impact/`, `/resources/` and `/take-action/`, with
+  the same header, footer and tokens. The footer's three paragraphs (project of
+  the PTSA, the disclaimer, questions/Instagram) are the Advocacy committee's
+  wording; change them on all four pages together. The header's nav (`.site-nav`) shows from 800px; below that each page
   has a `.page-tabs` row at the top of its hero. Mark the current page with
   `aria-current="page"` in both. Cross-page links are root-relative (`/#sign`).
 - `index.html` — the letter page: hero, the letter (`<article class="letter">`), references
@@ -36,7 +39,7 @@ served by GitHub Pages at https://save.sesptsa.org.
   count in the hero. Both are filled by `script.js` from the JSON feed, whose URL is
   the `<link rel="preload" id="signers-feed">` in `<head>` (preloaded because Apps
   Script takes 1–2 s). The section stays hidden until it loads; the hero count
-  shows a floor ("1,400+", in both pages) at once, then the visitor's last-seen count, then the
+  shows a floor ("2,000+", in both pages) at once, then the visitor's last-seen count, then the
   live one. Raise the floor as the count grows (both spans; see the comment in
   `style.css`), never above the real count. The feed is a
   Google Apps Script web app on the form's responses spreadsheet; its source and
@@ -69,6 +72,31 @@ served by GitHub Pages at https://save.sesptsa.org.
   `pdftoppm -f 1 -l 1 -singlefile -scale-to-x 800 -scale-to-y -1 -png in.pdf out`,
   then `cwebp -q 80 out.png -o assets/previews/<name>-800.webp`; the same for
   the 300px one. Styles: the "Resources page" block in `style.css`.
+- `take-action/index.html`, `take-action.js` — "Take Action": the hero (the ask,
+  "Sign the Letter" → `/#sign`, "Last updated" typed by hand, and a card with the
+  next event), seven numbered steps (`.steps`; step 02 holds the officials table,
+  step 06 the message to copy), upcoming events, key dates on a dark band, the
+  four "Why SES" reasons, resources. The hero card and the events list come from
+  the events feed: the same Apps Script as the signers feed, asked with
+  `?feed=events` (the `signers-feed` preload in `<head>`), which serves the
+  responses spreadsheet's `Events` tab (columns and setup in
+  `tools/signers-apps-script.js`; volunteers add rows and tick "Show on site",
+  no deploy; "Highlight" gives an event a green edge, "Map link" makes its
+  place a link). The page keeps only events dated today or later, so they drop off
+  the day after; until the feed answers (or without JS) the card shows the vote
+  and the list its loading/empty/error states. The key dates are static in the
+  HTML with `data-date`; the script dims past ones and puts the "we are here"
+  item (days until the `.is-vote` date) in place. The Copy Message button copies
+  the blockquote's text (`navigator.clipboard`, with an `execCommand` fallback)
+  and stays hidden without JS. Off-site links and the PDFs open a new tab
+  (`target="_blank" rel="noopener"`, plus a visually-hidden "(opens in a new
+  tab)"); text links get the arrow from CSS, buttons don't. Styles: the "Take
+  Action page" block in `style.css`, built on the `--sp-*` spacing scale and
+  `--text-sm` (tokens at the top; the older pages still carry their own
+  values) and the `.tag` label (`.tag-sun`, `.tag-green`); `--sun` is its
+  accent, for time and urgency only (the "not a done deal" highlight, the today
+  marker). The "Want to speak at a meeting?" note is commented out until the
+  committee has the Konstella sign-up link.
 - `script.js`, `signers.js` — see above.
 - `package.json`, `.oxlintrc.json`, `.prettierrc`, `.prettierignore` — dev tooling only.
 - `style.css` — tokens at the top. `--green: #007108` is August's artwork green;
@@ -90,7 +118,7 @@ served by GitHub Pages at https://save.sesptsa.org.
   always fits) up to `--title-max` (4rem). From 1200px the letter hero's text column
   is what's left beside the artwork (`--hero-art-w`), and the impact hero uses the
   full column, so both reach about the maximum there.
-  `assets/sunnyside-by-the-numbers.pdf` — Hanna's one-page fact sheet, linked under the letter
+- `assets/sunnyside-by-the-numbers.pdf` — Hanna's one-page fact sheet, linked under the letter
   and on `/resources/`.
 - The other downloads on `/resources/`: `assets/sunnyside-letter-to-pps-board.pdf`,
   `assets/place-based-education-in-action.pdf`, the flyers
@@ -107,8 +135,8 @@ served by GitHub Pages at https://save.sesptsa.org.
 - Framing: lead with the environmental mission, K-8 continuity, and what SES does
   for Portland. Never anything charter-adjacent ("school choice", "families deserve
   options"). The letter is the source of truth for message; don't invent new claims.
-- Content changes go through the communications group (Hanna) before publishing.
-  Dan can ship structural and technical changes directly.
+- Content changes come from the PTSA's Advocacy committee. Dan can ship structural
+  and technical changes directly.
 - Mobile first; most visitors arrive from a phone via QR or a Konstella link.
 - Verify in a real browser at 390px and 1200px before pushing anything visual,
-  on both pages when the shared CSS or scripts change.
+  on every page when the shared CSS or scripts change.

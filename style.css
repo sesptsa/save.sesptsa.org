@@ -19,6 +19,23 @@
   --leaf: #5cb866;
   --mint: #e3efd9;
   --sage: #c5d9c6;
+  /* The take-action page's accent, for time and urgency only (the "not a done
+     deal" highlight, the "we are here" marker). Ink on it reads at 7.8:1; on
+     cream it is never text or a line, only a filled shape with an ink edge. */
+  --sun: #f2c94c;
+  /* The spacing scale and the small text size. The take-action page is built
+     on them; the earlier pages still carry their own values (use these when
+     touching those). --sp-1 inside a block, --sp-2 between items, --sp-3
+     between groups, --sp-4 the widest gaps, --sp-section between sections. */
+  --sp-1: 0.5rem;
+  --sp-2: 1rem;
+  --sp-3: 1.5rem;
+  --sp-4: 2rem;
+  --sp-section: clamp(2.5rem, 6vw, 4rem);
+  --text-sm: 0.9375rem; /* meta lines, notes, lists */
+  /* The external-link arrow (resources/index.html's #icon-external) as a
+     mask image, for links that open a new tab. */
+  --icon-external: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3H3v12h12v-4M10 3h5v5M15 3L8 10'/%3E%3C/svg%3E");
   --measure: 40rem; /* letter column; also the form embed's natural width */
   --wide: 72rem; /* header */
   --gutter: 1.25rem;
@@ -236,6 +253,7 @@ p {
   text-decoration: none;
   font-weight: 600;
   font-size: 1rem;
+  white-space: nowrap;
 }
 .site-nav a:hover,
 .site-nav a[aria-current] {
@@ -243,7 +261,9 @@ p {
   text-decoration: underline;
   text-underline-offset: 0.3em;
 }
-@media (min-width: 720px) {
+/* Four links, the wordmark and the button need about 760px; below that the
+   page tabs in the hero carry the nav. */
+@media (min-width: 800px) {
   .site-nav {
     display: flex;
   }
@@ -290,19 +310,36 @@ p {
   print-color-adjust: exact;
 }
 /* Page tabs: the site nav for phones, at the top of the hero in its colourway.
-   They go once the header's own nav shows. */
+   They go once the header's own nav shows. Four tabs just fit a 360px phone;
+   narrower than that the row scrolls sideways (the clipped last tab shows
+   there is more) rather than wrapping under the title. */
 .page-tabs {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   margin-block: -0.5rem 1.75rem; /* margin-inline comes from .col */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.page-tabs::-webkit-scrollbar {
+  display: none;
 }
 .page-tabs a {
+  flex: none;
   padding: 0.25rem 0 0.35rem;
   color: var(--hero-fg);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
   border-bottom: 2px solid transparent;
+}
+@media (min-width: 420px) {
+  .page-tabs {
+    gap: 1.5rem;
+  }
+  .page-tabs a {
+    font-size: 1rem;
+  }
 }
 .page-tabs a:hover {
   border-bottom-color: color-mix(in srgb, currentColor 50%, transparent);
@@ -310,7 +347,7 @@ p {
 .page-tabs a[aria-current] {
   border-bottom-color: currentColor;
 }
-@media (min-width: 720px) {
+@media (min-width: 800px) {
   .page-tabs {
     display: none;
   }
@@ -357,11 +394,11 @@ p {
   }
 }
 /* The running signature count, ruled off from "Add my name". It shows a
-   floor ("1,400+", in index.html and impact/index.html) at once, then the visitor's last-seen count,
+   floor ("2,000+", in index.html and impact/index.html) at once, then the visitor's last-seen count,
    then the live one when the feed answers. The hidden .count-sizer keeps the
    floor's width, and with tabular figures any 4-digit count is narrower, so the
    button never moves. Raise the floor in both spans as the count grows (keep
-   it at or below the real count). The font size is set so "1,400+" and the
+   it at or below the real count). The font size is set so "2,000+" and the
    button share one row at 360px; check that again if the floor reaches
    "10,000+". */
 .signed-count {
@@ -945,8 +982,17 @@ sup.cite a.is-open {
   font-size: 1.05rem;
   margin-bottom: 0.75rem;
 }
+.site-footer p {
+  max-width: 46em; /* the wide pages' columns are too long a line for this */
+  margin-bottom: 0.75em;
+}
 .site-footer p:last-child {
   margin: 0;
+}
+/* The disclaimer: there, but quieter than the two lines around it. */
+.footer-note {
+  font-size: 0.875rem;
+  opacity: 0.85;
 }
 .site-footer a {
   color: inherit;
@@ -1527,7 +1573,7 @@ sup.cite a.is-open {
 .tabs-band .page-tabs {
   margin-block: 0;
 }
-@media (min-width: 720px) {
+@media (min-width: 800px) {
   .tabs-band {
     display: none;
   }
@@ -1757,6 +1803,712 @@ sup.cite a.is-open {
   font-weight: 650;
 }
 
+/* ---- Take Action page (take-action/index.html, take-action.js) -----------
+   The hero (the ask, "Sign the Letter", and a card with the next event from
+   the events feed, or the vote until that loads), the seven numbered steps,
+   the upcoming events from the feed, the key dates on a dark band with a
+   "we are here" marker, the four reasons, and resources. One column, the
+   header's width, on cream like the resources page.
+
+   Spacing is the --sp-* scale (tokens at the top): --sp-1 inside a block
+   (a title and its meta), --sp-2 between items (cards, rows), --sp-3
+   between groups (a section's head and its list, a row's padding), --sp-4
+   for the widest gaps, --sp-section between sections. Type: the section
+   titles, item titles (--ta-title; the steps' one size up), body copy, and
+   --text-sm for meta, notes and lists. The small-caps labels share .tag. */
+.take-action main {
+  background: var(--cream);
+  --ta-title: 1.125rem; /* event, card and reason titles */
+  --ta-title-lg: 1.25rem; /* the steps' titles */
+}
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: var(--mint);
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tag-sun {
+  background: var(--sun);
+}
+.tag-green {
+  background: var(--green);
+  color: var(--cream);
+}
+/* Links that open a new tab carry the external-link arrow (the resources
+   page's #icon-external, as a mask so every such link gets it). Buttons
+   don't; they read as actions already. */
+.take-action :is(.step-links, .dates-cal, .res-list) a[target="_blank"]::after {
+  /* An inline box (not inline-block, which could wrap onto a line of its
+     own) holding a word joiner, so it stays with the last word; the
+     padding is the icon's width. */
+  content: "\2060";
+  padding-left: 0.8em;
+  margin-left: 0.3em;
+  background: currentColor;
+  -webkit-mask: var(--icon-external) center / 0.8em no-repeat;
+  mask: var(--icon-external) center / 0.8em no-repeat;
+}
+
+.ta-hero .page-tabs {
+  --col-w: var(--wide);
+}
+.ta-hero-inner {
+  display: grid;
+  gap: var(--sp-4);
+}
+.ta-hero .lede {
+  max-width: 36em;
+}
+mark.sun {
+  background: var(--sun);
+  color: var(--ink);
+  font-weight: 800;
+  padding: 0.05em 0.25em;
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.ta-hero .actions .button {
+  flex: 1 1 100%; /* phones: the one big button, full width */
+  padding-block: 1em;
+  text-align: center;
+}
+.updated {
+  font-size: var(--text-sm);
+}
+@media (min-width: 560px) {
+  .ta-hero .actions .button {
+    flex: none;
+    padding-block: 0.9em;
+  }
+}
+
+/* The card: cream on the green hero. take-action.js swaps the vote for the
+   next event once the feed answers; without it the vote stays. */
+.next-card {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--cream);
+  color: var(--ink);
+  border-radius: 10px;
+  --focus: var(--green);
+}
+.next-label,
+.officials th {
+  /* the eyebrow: a small-caps label over something */
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.next-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.next-head h2 {
+  font-size: var(--ta-title);
+  font-weight: 800;
+  line-height: 1.3;
+}
+.next-card p {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.next-meta {
+  color: var(--muted);
+}
+.next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-3);
+}
+.next-card .button {
+  background: var(--green);
+  color: var(--white);
+}
+.next-card .button:hover {
+  background: var(--green-deep);
+  color: var(--white);
+}
+.next-card .button,
+.event-link .button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.next-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  min-height: 44px;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+.next-all svg {
+  width: 1em;
+  height: 1em;
+}
+/* A calendar-leaf date: weekday, day, month. */
+.date-tile {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  width: 3.5rem;
+  height: 4rem;
+  border-radius: 8px;
+  background: var(--mint);
+  color: var(--ink);
+  line-height: 1;
+  text-align: center;
+}
+.date-tile b {
+  font-size: 1.5rem;
+  font-stretch: 125%;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+.date-tile span {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@media (min-width: 1000px) {
+  .ta-hero-inner {
+    grid-template-columns: minmax(0, 1fr) 27rem;
+    column-gap: 4rem;
+    align-items: center;
+    /* the text column: the page column less the gap and the card */
+    --hero-text-w: calc(min(var(--wide), 100vw - 2 * var(--gutter)) - 4rem - 27rem);
+  }
+  .next-card {
+    padding: var(--sp-4);
+  }
+}
+
+/* Sections: a heavy rule, the title, a line of intro. */
+.ta-section {
+  padding-top: var(--sp-section);
+}
+.take-action main > .ta-section:last-child {
+  padding-bottom: var(--sp-section);
+}
+.section-head {
+  margin-bottom: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: var(--rule-heavy);
+}
+.section-head h2 {
+  font-size: clamp(1.5rem, 5.5vw, 2.25rem);
+  line-height: 1;
+  margin: 0 0 var(--sp-2);
+  text-wrap: balance;
+}
+.section-head .lede {
+  margin: 0;
+  max-width: 34em;
+  font-size: 1.05em;
+}
+/* :where() keeps this at class specificity, so .step h3 and .why-list h3
+   can set their own size and margin. */
+.take-action :where(main h3) {
+  margin: 0;
+  font-size: var(--ta-title);
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+/* The steps: number, title and text, then the button; from 860px the number,
+   the text and the button are three columns (the buttons' column a fixed
+   width, so they line up), with anything extra (the officials table, the
+   message to copy) under the text. */
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  --act-w: 16rem; /* fits "Submit a Question to PPS" */
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--rule);
+}
+.step:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.step-n {
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+.step h3 {
+  font-size: var(--ta-title-lg);
+  line-height: 1.2;
+  margin-bottom: var(--sp-1);
+  text-wrap: balance;
+}
+.step-text p {
+  margin: 0;
+}
+.step-tag {
+  margin-bottom: var(--sp-1);
+}
+.step-act {
+  display: grid;
+  gap: var(--sp-1);
+  justify-items: start;
+  margin: 0;
+}
+.step-act .button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: 48px;
+  padding: 0 1.25em;
+}
+.step-act .button svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.copy-status {
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.copy-status:empty {
+  display: none;
+}
+.step-more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.step-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--sp-3);
+  margin: 0;
+}
+.step-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+.share-message {
+  margin: 0;
+  max-width: var(--measure);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--mint);
+  border-radius: 10px;
+  font-size: 1rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+/* The officials: name over email on phones, a two-column table from 600px
+   where an address stays in one piece and the name column gives way. */
+.officials {
+  width: 100%;
+  max-width: 52rem;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+.officials caption {
+  text-align: left;
+  font-weight: 800;
+  padding-bottom: var(--sp-1);
+}
+.officials thead {
+  display: none;
+}
+.officials tr {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: var(--sp-1) 0;
+  border-top: 1px solid var(--rule);
+}
+.officials tr:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.officials td {
+  padding: 0;
+}
+.officials td:first-child {
+  font-weight: 700;
+}
+.officials a {
+  font-weight: 600;
+  overflow-wrap: anywhere; /* a narrow phone: better broken than overflowing */
+}
+@media (min-width: 600px) {
+  .officials thead {
+    display: table-header-group;
+  }
+  .officials tr {
+    display: table-row;
+    border: 0;
+  }
+  .officials th {
+    padding: var(--sp-1) var(--sp-3) var(--sp-1) 0;
+    border-bottom: 2px solid var(--ink);
+    text-align: left;
+  }
+  .officials td {
+    padding: var(--sp-1) var(--sp-3) var(--sp-1) 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .officials td:last-child {
+    white-space: nowrap;
+  }
+  .officials a {
+    overflow-wrap: normal;
+  }
+}
+@media (min-width: 860px) {
+  .step {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr) var(--act-w);
+    gap: var(--sp-3);
+    align-items: start;
+    padding: var(--sp-4) 0;
+  }
+  .step-n {
+    font-size: 3rem;
+  }
+  .step h3 {
+    font-size: 1.375rem;
+  }
+  .step-text {
+    max-width: var(--measure);
+  }
+  .step-act {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .step-more {
+    grid-row: 2;
+    grid-column: 2 / -1;
+  }
+}
+
+/* Upcoming events, from the feed: a card each; a highlighted one gets a
+   green edge. */
+.events {
+  padding-bottom: var(--sp-section);
+}
+.events-note {
+  margin: 0 0 var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--mint);
+  border-radius: 10px;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.events-status {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.event-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+}
+.event {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: var(--sp-2);
+  align-items: start;
+  padding: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+}
+.event.is-featured {
+  border: 2px solid var(--green);
+  padding: calc(var(--sp-3) - 1px);
+}
+.event p {
+  margin: var(--sp-1) 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.event-meta {
+  color: var(--muted);
+}
+.event-details {
+  white-space: pre-line; /* keep the writer's line breaks */
+  overflow-wrap: anywhere;
+}
+.event-link {
+  grid-column: 2;
+}
+.events .notice {
+  margin: 0;
+}
+.dates-cal {
+  margin: var(--sp-3) 0 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+@media (min-width: 720px) {
+  .event {
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    column-gap: var(--sp-3);
+  }
+  .event .date-tile {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+  .event .date-tile b {
+    font-size: 1.75rem;
+  }
+  .event p {
+    font-size: 1rem;
+    max-width: 42em;
+  }
+  .event-link {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    margin: 0;
+  }
+}
+
+/* Key dates: the dark band. A vertical timeline, with the day's "we are here"
+   marker put in place by take-action.js; from 1000px it runs across, with a
+   row above the markers reserved for the flags so every date starts at the
+   same height. --dot is the marker's size; the line joins their centres. */
+.dates {
+  padding: var(--sp-section) 0;
+  background: var(--ink);
+  color: var(--cream);
+  --focus: var(--cream);
+}
+.dates .section-head {
+  border-top-color: var(--cream);
+}
+.dates a {
+  color: inherit;
+}
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+  --dot: 1.125rem;
+  --line: color-mix(in srgb, var(--cream) 35%, transparent);
+  --line-planned: color-mix(in srgb, var(--cream) 45%, transparent);
+}
+.timeline li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding-left: calc(var(--dot) + var(--sp-2));
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.timeline li::before {
+  /* the marker, on the first line */
+  content: "";
+  position: absolute;
+  box-sizing: border-box;
+  left: 0;
+  top: 0.125rem;
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: 50%;
+  background: var(--ink);
+  border: 3px solid var(--mint);
+}
+.timeline li::after {
+  /* the line down to the next marker */
+  content: "";
+  position: absolute;
+  left: calc(var(--dot) / 2 - 1px);
+  top: calc(0.125rem + var(--dot));
+  bottom: calc(-1 * var(--sp-3));
+  width: 2px;
+  background: var(--line);
+}
+.timeline li:last-child::after {
+  display: none;
+}
+.timeline .is-past {
+  opacity: 0.65;
+}
+.timeline .is-today::before {
+  background: var(--sun);
+  border-color: var(--sun);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sun) 25%, transparent);
+}
+.timeline .is-vote::before {
+  background: var(--green);
+  border-color: var(--cream);
+}
+.timeline .is-vote::after {
+  /* after the vote the line is only planned */
+  background: none;
+  border-left: 2px dotted var(--line-planned);
+}
+.timeline .tl-note {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.flag {
+  margin-bottom: var(--sp-1);
+  white-space: nowrap; /* across, a narrow column must not fold it onto the marker */
+}
+.dates .tag-green {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cream) 50%, transparent);
+}
+@media (min-width: 1000px) {
+  .timeline {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: var(--sp-4);
+    --dot: 1rem;
+    --flag-h: 2rem; /* the row above the markers, for the flags */
+  }
+  .timeline li {
+    padding: calc(var(--flag-h) + var(--dot) + var(--sp-2)) 0 0;
+  }
+  .timeline li::before {
+    top: var(--flag-h);
+  }
+  .timeline li::after {
+    left: var(--dot);
+    right: calc(-1 * var(--sp-4));
+    top: calc(var(--flag-h) + var(--dot) / 2 - 1px);
+    bottom: auto;
+    width: auto;
+    height: 2px;
+  }
+  .timeline .is-vote::after {
+    border-left: 0;
+    border-top: 2px dotted var(--line-planned);
+  }
+  .flag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+  }
+}
+
+/* Why SES: the four reasons, numbered down the left; two columns from 860px. */
+.why-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.why-list li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  column-gap: var(--sp-1);
+  padding: var(--sp-3) 0;
+}
+.why-list li + li {
+  border-top: 1px solid var(--rule);
+}
+.why-n {
+  grid-row: 1 / span 2;
+  padding-top: 0.1em;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+.why-list h3 {
+  margin-bottom: var(--sp-1);
+  text-wrap: balance;
+}
+.why-list p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.why-cta {
+  margin: 0;
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 860px) {
+  .why-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 var(--sp-4);
+  }
+  .why-list li {
+    border-top: 1px solid var(--rule);
+  }
+  .why-list li:nth-child(-n + 2) {
+    border-top: 0;
+    padding-top: var(--sp-1);
+  }
+}
+
+/* Resources: a list of links, with the news stories grouped. */
+.res-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 44rem;
+}
+.res-list li {
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--rule);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.res-list li:first-child {
+  border-top: 0;
+}
+.res-list li:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.res-list a {
+  color: var(--ink);
+  font-weight: 700;
+}
+.res-news {
+  display: grid;
+  gap: var(--sp-1);
+  margin-top: var(--sp-1);
+}
+.res-news a {
+  font-weight: 600;
+}
+
 /* ---- Print: the letter and its references, nothing else ---------------- */
 @media print {
   html {
@@ -1777,13 +2529,19 @@ sup.cite a.is-open {
   .pager,
   .more-button,
   .stories-cta,
-  .skeleton {
+  .skeleton,
+  .copy-message,
+  .copy-status {
     display: none !important;
   }
   .legacy,
-  .voices {
+  .voices,
+  .dates {
     background: none;
     color: var(--ink);
+  }
+  .dates .section-head {
+    border-top-color: var(--ink);
   }
   .legacy .eyebrow {
     color: var(--ink);
