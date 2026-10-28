@@ -38,7 +38,7 @@ window.SaveSES = (function () {
     });
   }
 
-  // The count shows a floor ("2,000+", in the HTML) at once, then this
+  // The count shows a floor ("3,500+", in the HTML) at once, then this
   // visitor's last-seen count, then the live one. Storage can be unavailable
   // (private mode, blocked site data); the floor then just stays.
   function showLastCount(valueEl) {

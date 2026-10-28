@@ -394,11 +394,11 @@ p {
   }
 }
 /* The running signature count, ruled off from "Add my name". It shows a
-   floor ("2,000+", in index.html and impact/index.html) at once, then the visitor's last-seen count,
+   floor ("3,500+", in index.html and impact/index.html) at once, then the visitor's last-seen count,
    then the live one when the feed answers. The hidden .count-sizer keeps the
    floor's width, and with tabular figures any 4-digit count is narrower, so the
    button never moves. Raise the floor in both spans as the count grows (keep
-   it at or below the real count). The font size is set so "2,000+" and the
+   it at or below the real count). The font size is set so "3,500+" and the
    button share one row at 360px; check that again if the floor reaches
    "10,000+". */
 .signed-count {
