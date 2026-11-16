@@ -94,7 +94,9 @@ function doGet() {
   var cache = CacheService.getScriptCache();
   var cached = cache.getAll(["events", "events:at"]);
   var json = cached.events;
-  if (!json || Date.now() - Number(cached["events:at"]) > FRESH_SECONDS * 1000) {
+  // No "events:at": an edit removed it (onEdit), so the copy is stale.
+  var readAt = Number(cached["events:at"]) || 0;
+  if (!json || Date.now() - readAt > FRESH_SECONDS * 1000) {
     try {
       json = JSON.stringify({ events: readEvents_() });
       cache.putAll({ events: json, "events:at": String(Date.now()) }, KEEP_SECONDS);
