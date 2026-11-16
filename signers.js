@@ -1,7 +1,7 @@
 // Save Sunnyside — the signers feed, shared by the letter page (script.js) and
 // the impact page (impact.js): fetching it, the running count, and the story
 // cards. The take-action page (take-action.js) uses the fetch and the helpers
-// for its events feed, which the same Apps Script serves. Loaded before each
+// for its events feed, which has its own Apps Script. Loaded before each
 // page script; it defines window.SaveSES and nothing else. Everything in the
 // feeds is text typed by the public or by volunteers, so it only ever goes into
 // the page via textContent.
@@ -28,12 +28,14 @@ window.SaveSES = (function () {
   // serving the count plus only the names and stories PTSA volunteers have
   // approved. It takes a second or more, so each page preloads it from <head>
   // (<link rel="preload" id="signers-feed">); fetching the same URL with the
-  // same CORS mode reuses that request.
-  function loadFeed() {
-    var link = document.getElementById("signers-feed");
-    if (!link) return Promise.reject(new Error("Signers feed: no preload link"));
+  // same CORS mode reuses that request. The take-action page loads its
+  // events feed (tools/events-apps-script.js) the same way, from the preload
+  // with the id it passes.
+  function loadFeed(id) {
+    var link = document.getElementById(id || "signers-feed");
+    if (!link) return Promise.reject(new Error("Feed: no preload link"));
     return fetch(link.href).then(function (res) {
-      if (!res.ok) throw new Error("Signers feed: HTTP " + res.status);
+      if (!res.ok) throw new Error("Feed: HTTP " + res.status);
       return res.json();
     });
   }

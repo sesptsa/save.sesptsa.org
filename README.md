@@ -17,8 +17,10 @@ on the site.
   repo. the count and signers list on the page come from a google apps script
   (`tools/signers-apps-script.js`) that publishes only what PTSA volunteers
   have okayed to show. the repo is public, the names aren't, and that split is
-  on purpose. the same script serves the events list from a tab in that
-  spreadsheet, so volunteers keep it current without touching the site.
+  on purpose. the events list comes from a second script
+  (`tools/events-apps-script.js`) on the advocacy committee's planning sheet,
+  which publishes only the rows they mark for the website, so volunteers keep
+  it current without touching the site.
 
 ## contributing
 

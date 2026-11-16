@@ -30,13 +30,13 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../style.css" />
-    <!-- The events feed: the same Apps Script as the signers feed
-       (tools/signers-apps-script.js), asked for the Events tab only. Apps
-       Script takes a second or more, so the request starts here; signers.js
-       picks it up by this id. -->
+    <!-- The events feed: an Apps Script on the committee's planning
+       spreadsheet (tools/events-apps-script.js). Apps Script takes a second
+       or more, so the request starts here; signers.js picks it up by this
+       id. -->
     <link
       rel="preload"
-      id="signers-feed"
+      id="events-feed"
       href="https://script.google.com/macros/s/AKfycbwg4P6pawlo5aMSITj7oFOV_Tt8ZWZUgIP8wA8VgB1C7SmMHEt-LmYx2IngZb3M070/exec?feed=events"
       as="fetch"
       crossorigin

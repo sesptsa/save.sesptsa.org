@@ -77,12 +77,15 @@ served by GitHub Pages at https://save.sesptsa.org.
   next event), seven numbered steps (`.steps`; step 02 holds the officials table,
   step 06 the message to copy), upcoming events, key dates on a dark band, the
   four "Why SES" reasons, resources. The hero card and the events list come from
-  the events feed: the same Apps Script as the signers feed, asked with
-  `?feed=events` (the `signers-feed` preload in `<head>`), which serves the
-  responses spreadsheet's `Events` tab (columns and setup in
-  `tools/signers-apps-script.js`; volunteers add rows and tick "Show on site",
-  no deploy; "Highlight" gives an event a green edge, "Map link" makes its
-  place a link). The page keeps only events dated today or later, so they drop off
+  the events feed (the `events-feed` preload in `<head>`): a second Apps Script,
+  on the Advocacy committee's planning spreadsheet, separate from the signers
+  feed. It serves that spreadsheet's events tab (columns and setup in
+  `tools/events-apps-script.js`; volunteers set "Website?" to Yes on a row, no
+  deploy; "Link" and "Link text" make the button, "Highlight" gives a green
+  edge, "Map link" makes the place a link). It reads only those columns and
+  shows cells as typed, apart from setting clock times in the site's style. That
+  spreadsheet is internal: its link never goes in this repo. The page keeps only
+  events dated today or later, so they drop off
   the day after; until the feed answers (or without JS) the card shows the vote
   and the list its loading/empty/error states. The key dates are static in the
   HTML with `data-date`; the script dims past ones and puts the "we are here"

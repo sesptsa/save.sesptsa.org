@@ -1,7 +1,7 @@
 // Save Sunnyside — the take-action page: the next event in the hero and the
-// upcoming events list, both from the events feed (signers.js fetches it: the
-// same Apps Script as the signers feed, asked for the Events tab), the "we are
-// here" marker in the key dates, and the Copy Message button. Everything is
+// upcoming events list, both from the events feed (signers.js fetches it: an
+// Apps Script on the committee's planning spreadsheet), the "we are here"
+// marker in the key dates, and the Copy Message button. Everything is
 // progressive: without it the hero shows the vote, the dates show without a
 // marker, and the message is there to select by hand.
 (function () {
@@ -170,7 +170,7 @@
 
   function load() {
     show({ loading: true });
-    S.loadFeed()
+    S.loadFeed("events-feed")
       .then(showEvents)
       .catch(function (err) {
         show({ error: true });
