@@ -80,6 +80,8 @@ def render(runs, link_text=None):
         lead = " " if text[0].isspace() else ""
         trail = " " if text[-1].isspace() else ""
         s = html.escape(text.strip(), quote=False)
+        # A straight apostrophe typed in the Doc ("It's", "students'") becomes the curly one.
+        s = re.sub(r"(?<=\w)'", "\u2019", s)
         # "... not evidence based [1], harms" -> a superscript link to the note.
         s = re.sub(r"\s*\[(\d+)\]", r'<sup class="cite" id="cite-\1"><a href="#note-\1">\1</a></sup>', s)
         if italic:

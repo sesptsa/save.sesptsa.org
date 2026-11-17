@@ -83,8 +83,8 @@ served by GitHub Pages at https://save.sesptsa.org.
 - `index.html`, `take-action.js` — "Take Action", the home page: the hero (the ask and a card
   with the next event; its "Email the School Board" button and "Last updated"
   line are commented out for now), a dark strip linking to the statement
-  (`.statement-strip`; it carries `is-hidden`, the class that switches a block
-  off, until the statement is final),
+  (`.statement-strip`; add `is-hidden`, the class that switches a block
+  off, to hide it),
   seven numbered steps (`.steps`; step 01 holds the officials table, step 05 the
   message to copy, step 07 is signing the letter), upcoming events, key dates on a dark band, the
   four "Why SES" reasons, resources. The hero card and the events list come from
