@@ -1,4 +1,6 @@
-# index.html holds the generated letter; reformatting it would churn every content update.
-/index.html
+# These hold generated text (the letter, the statement); reformatting them would
+# churn every content update.
+/letter/index.html
+/response/index.html
 package-lock.json
 assets/

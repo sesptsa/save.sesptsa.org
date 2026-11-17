@@ -1,4 +1,4 @@
-// Save Sunnyside — the take-action page: the next event in the hero and the
+// Save Sunnyside — the home page (Take Action): the next event in the hero and the
 // upcoming events list, both from the events feed (signers.js fetches it: an
 // Apps Script on the committee's planning spreadsheet), the "we are here"
 // marker in the key dates, and the Copy Message button. Everything is
@@ -6,6 +6,14 @@
 // marker, and the message is there to select by hand.
 (function () {
   "use strict";
+
+  // The letter lived at this address until Nov. 2026; links to its parts
+  // (the signers, a reference) that are still out there go on to /letter/.
+  // "#sign" stays: it lands on the sign step here.
+  if (/^#(undersigned|letter|references|(ref|cite)-\d+)$/.test(location.hash)) {
+    location.replace("/letter/" + location.hash);
+    return;
+  }
 
   var S = window.SaveSES;
   var DAY = 86400000;

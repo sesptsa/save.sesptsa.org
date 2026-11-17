@@ -8,13 +8,14 @@ served by GitHub Pages at https://save.sesptsa.org.
 - Plain HTML/CSS plus four small vanilla scripts, no framework: `signers.js`
   (shared: the feed fetch, the count, story cards), `script.js` (the letter page:
   sticky bar, citation popovers/sheet, form-submit scroll, the signers list),
-  `impact.js` (the impact page's stories) and `take-action.js` (the take-action
+  `impact.js` (the impact page's stories) and `take-action.js` (the home
   page's events, key dates and copy button). Keep it that way.
 - Pages serves the files exactly as committed. `package.json` holds dev tooling only
   (`npm run dev` = Vite dev server, `npm run lint` = Oxlint, `npm run format` =
   Prettier). **Never add a build script**: nothing may depend on a transform step,
-  so no imports that only Vite can resolve. Prettier skips `index.html` on purpose;
-  the letter markup there is generated.
+  so no imports that only Vite can resolve. Prettier skips `letter/index.html` and
+  `response/index.html` on purpose; the letter and statement markup there is
+  generated.
 - GitHub Pages, "deploy from a branch" (`main`, root). Every push to `main` deploys
   in about a minute; the deploy shows under the Actions tab.
 - `.nojekyll` is present so Pages serves files as-is. Don't remove it.
@@ -24,24 +25,31 @@ served by GitHub Pages at https://save.sesptsa.org.
 
 ## Layout
 
-- Four pages, `/` (the letter), `/impact/`, `/resources/` and `/take-action/`, with
-  the same header, footer and tokens. The footer's three paragraphs (project of
+- Five pages: `/` (Take Action, the home page since Nov. 2026, when the campaign
+  moved from collecting signatures to the board vote), `/letter/` (the letter and
+  signatures, the home page until then), `/impact/`, `/resources/` and
+  `/response/` (the community statement; not in the nav, linked from the home
+  page), with the same header, footer and tokens. `/take-action/` is a redirect
+  to `/` (it is in messages already sent; it carries the `#hash` along), and
+  `take-action.js` sends the letter's old anchors (`/#undersigned`, `/#ref-N`)
+  on to `/letter/`; `/#sign` lands on the home page's sign step. The footer's three paragraphs (project of
   the PTSA, the disclaimer, questions/Instagram) are the Advocacy committee's
-  wording; change them on all four pages together. The header's nav (`.site-nav`) shows from 800px; below that each page
+  wording; change them on all five pages together. The header's nav (`.site-nav`) shows from 800px; below that each page
   has a `.page-tabs` row at the top of its hero. Mark the current page with
-  `aria-current="page"` in both. Cross-page links are root-relative (`/#sign`).
-- `index.html` — the letter page: hero, the letter (`<article class="letter">`), references
+  `aria-current="page"` in both. Cross-page links are root-relative (`/letter/#sign`).
+- `letter/index.html` — the letter page: hero (no count or button since the
+  letter went to the board), the letter (`<article class="letter">`), references
   (`<details>`), embedded Google Form. The letter HTML was generated from the Google
   Docs export of the FINAL tab by `tools/letter2html.py` (its docstring has the
   update steps); citation markers are `<sup class="cite">` linking to `#ref-N`, and
   the popovers and the reference count read from the references list.
-- `#undersigned` in `index.html` — the signers section after the form, and the
-  count in the hero. Both are filled by `script.js` from the JSON feed, whose URL is
+- `#undersigned` in `letter/index.html` — the signers section after the form,
+  filled by `script.js` from the JSON feed, whose URL is
   the `<link rel="preload" id="signers-feed">` in `<head>` (preloaded because Apps
-  Script takes 1–2 s). The section stays hidden until it loads; the hero count
-  shows a floor ("3,500+", in both pages) at once, then the visitor's last-seen count, then the
-  live one. Raise the floor as the count grows (both spans; see the comment in
-  `style.css`), never above the real count. The feed is a
+  Script takes 1–2 s). The section stays hidden until it loads. The impact page's
+  bridge still shows the count: a floor ("3,500+") at once, then the visitor's
+  last-seen count, then the live one. Raise the floor as the count grows (both
+  spans; see the comment in `style.css`), never above the real count. The feed is a
   Google Apps Script web app on the form's responses spreadsheet; its source and
   setup steps are in `tools/signers-apps-script.js`. It serves only ticked rows
   ("Name ok", "Story ok", "Feature?"), so the data never touches this repo; Name ok
@@ -52,7 +60,7 @@ served by GitHub Pages at https://save.sesptsa.org.
   the feed is cached for minutes and can't shuffle per visitor.
 - `impact/index.html`, `impact.js` — the impact page: Hanna's "Place-Based
   Education in Action" copy (hero numbers, the work, the dark "since 1994" band,
-  how it works, about the data), a green bridge back to `/#sign`, then the stories
+  how it works, about the data), a green bridge back to `/letter/#sign`, then the stories
   from the feed: Featured, six on a full-width mint band ("More stories" adds six
   more, the featured ones first, then the rest; any six if nothing is featured
   yet), and All stories newest first, 10 at a time. Stories up to 800 characters
@@ -72,10 +80,13 @@ served by GitHub Pages at https://save.sesptsa.org.
   `pdftoppm -f 1 -l 1 -singlefile -scale-to-x 800 -scale-to-y -1 -png in.pdf out`,
   then `cwebp -q 80 out.png -o assets/previews/<name>-800.webp`; the same for
   the 300px one. Styles: the "Resources page" block in `style.css`.
-- `take-action/index.html`, `take-action.js` — "Take Action": the hero (the ask,
-  "Sign the Letter" → `/#sign`, "Last updated" typed by hand, and a card with the
-  next event), seven numbered steps (`.steps`; step 02 holds the officials table,
-  step 06 the message to copy), upcoming events, key dates on a dark band, the
+- `index.html`, `take-action.js` — "Take Action", the home page: the hero (the ask and a card
+  with the next event; its "Email the School Board" button and "Last updated"
+  line are commented out for now), a dark strip linking to the statement
+  (`.statement-strip`; it carries `is-hidden`, the class that switches a block
+  off, until the statement is final),
+  seven numbered steps (`.steps`; step 01 holds the officials table, step 05 the
+  message to copy, step 07 is signing the letter), upcoming events, key dates on a dark band, the
   four "Why SES" reasons, resources. The hero card and the events list come from
   the events feed (the `events-feed` preload in `<head>`): a second Apps Script,
   on the Advocacy committee's planning spreadsheet, separate from the signers
@@ -100,6 +111,14 @@ served by GitHub Pages at https://save.sesptsa.org.
   accent, for time and urgency only (the "not a done deal" highlight, the today
   marker). The "Want to speak at a meeting?" note is commented out until the
   committee has the Konstella sign-up link.
+- `response/index.html` — the community statement on the Superintendent's final
+  recommendation (Nov. 2026). Static, no script: the page tabs on a green band
+  on phones (as on resources), the statement in the letter's column and type,
+  then its notes and references, always open. The text is generated from its
+  Google Doc by `tools/statement2html.py` (its docstring has the update steps;
+  it warns about placeholders still in the Doc). Note markers are
+  `<sup class="cite">` linking to `#note-N`. Styles: the "Statement page" block
+  in `style.css`.
 - `script.js`, `signers.js` — see above.
 - `package.json`, `.oxlintrc.json`, `.prettierrc`, `.prettierignore` — dev tooling only.
 - `style.css` — tokens at the top. `--green: #007108` is August's artwork green;

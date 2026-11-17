@@ -176,19 +176,15 @@
 
   /* ---- The undersigned ------------------------------------------------ */
   // The feed (signers.js) serves the count plus only the names and stories
-  // PTSA volunteers have approved. It takes a second or more, so the hero
-  // shows a floor ("3,500+") or this visitor's last-seen count meanwhile, and
-  // the section stays hidden until it loads.
+  // PTSA volunteers have approved. It takes a second or more, so the section
+  // stays hidden until it loads.
   var S = window.SaveSES;
   var undersigned = document.getElementById("undersigned");
-  var heroCount = document.querySelector(".hero .signed-count");
-  var heroValue = heroCount.querySelector(".count-value");
   var wide = window.matchMedia("(min-width: 560px)").matches;
 
-  S.showLastCount(heroValue);
   S.loadFeed()
     .then(function (feed) {
-      if (!showSigners(feed)) return noSection();
+      if (!showSigners(feed)) return;
       // A link to #undersigned from elsewhere (the impact page's count) arrived
       // while the section was still hidden, so the browser had nowhere to go.
       // Scroll once the lists above have laid out.
@@ -199,14 +195,8 @@
       }
     })
     .catch(function (err) {
-      noSection();
       console.warn(err);
     });
-
-  // Without the section the count keeps its floor but links nowhere.
-  function noSection() {
-    heroCount.removeAttribute("href");
-  }
 
   // Returns whether there was anything to show.
   function showSigners(feed) {
@@ -216,7 +206,6 @@
     if (!(feed && feed.count > 0)) return false;
     var count = S.format(feed.count);
 
-    heroValue.textContent = count;
     undersigned.querySelector(".undersigned-count strong").textContent = count;
     S.rememberCount(feed.count);
     undersigned.hidden = false;

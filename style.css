@@ -1,5 +1,6 @@
-/* Save Sunnyside — the letter page (letter, references, signature form) and
-   the impact page, which shares the header, footer, buttons and story cards.
+/* Save Sunnyside — the letter page (letter, references, signature form) first,
+   then a block each for the impact, resources, home (Take Action) and statement
+   pages, which share the header, footer, buttons and story cards.
    Tokens first; everything green on the site uses --green (August's artwork). */
 
 :root {
@@ -96,6 +97,11 @@
 }
 [hidden] {
   display: none !important; /* even where a class sets display: flex or grid */
+}
+/* Switches a finished block off until its content is ready (the statement
+   strip on the home page): add or remove the class in the HTML. */
+.is-hidden {
+  display: none !important;
 }
 
 html {
@@ -1803,9 +1809,10 @@ sup.cite a.is-open {
   font-weight: 650;
 }
 
-/* ---- Take Action page (take-action/index.html, take-action.js) -----------
-   The hero (the ask, "Sign the Letter", and a card with the next event from
-   the events feed, or the vote until that loads), the seven numbered steps,
+/* ---- Take Action, the home page (index.html, take-action.js) -------------
+   The hero (the ask and a card with the next event from the events feed, or
+   the vote until that loads), the strip linking to the community statement,
+   the seven numbered steps,
    the upcoming events from the feed, the key dates on a dark band with a
    "we are here" marker, the four reasons, and resources. One column, the
    header's width, on cream like the resources page.
@@ -1999,6 +2006,55 @@ mark.sun {
   }
   .next-card {
     padding: var(--sp-4);
+  }
+}
+
+/* The community statement (response/index.html): a dark strip under the hero,
+   the line and its button side by side from 720px. */
+.statement-strip {
+  padding-block: var(--sp-3);
+  background: var(--ink);
+  color: var(--cream);
+}
+.statement-strip-inner {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: start;
+}
+.statement-strip h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.statement-strip .button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 1.25em;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 1rem;
+}
+.statement-strip .button:hover {
+  background: var(--white);
+  color: var(--ink);
+}
+.statement-strip .button:focus-visible {
+  outline-color: var(--cream);
+}
+@media (min-width: 720px) {
+  .statement-strip {
+    padding-block: var(--sp-2);
+  }
+  .statement-strip-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--sp-4);
+    align-items: center;
+  }
+  .statement-strip h2 {
+    font-size: 1.25rem;
   }
 }
 
@@ -2507,6 +2563,30 @@ mark.sun {
 }
 .res-news a {
   font-weight: 600;
+}
+
+/* ---- Statement page (response/index.html) --------------------------------
+   The community statement on the Superintendent's final recommendation: the
+   letter's column and type (.letter), no hero, the page tabs on a green band
+   on phones as on the resources page. Its notes and references use the
+   letter's .references-list, always open. */
+.statement {
+  padding-top: var(--sp-4);
+}
+.statement-notes h2 {
+  font-size: 1rem;
+}
+.statement-notes ol + h2 {
+  margin-top: var(--sp-4);
+}
+/* The sources: no numbers, each with a hanging indent. */
+.sources-list {
+  list-style: none;
+  padding-left: 0;
+}
+.sources-list li {
+  padding-left: 1.75rem;
+  text-indent: -1.75rem;
 }
 
 /* ---- Print: the letter and its references, nothing else ---------------- */

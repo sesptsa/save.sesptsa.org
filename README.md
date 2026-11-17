@@ -1,16 +1,17 @@
 # save sunnyside
 
 the website at **[save.sesptsa.org](https://save.sesptsa.org)**: the sunnyside
-environmental school PTSA's community letter to the portland school board, asking
-that SES stay a K–8 with its environmental focus program. to add your name, sign
-on the site.
+environmental school PTSA's campaign to keep SES a K–8 with its environmental
+focus program: ways to help before the portland school board votes, and the
+community letter to the board. to add your name, sign on the site.
 
 ## how it works
 
-- static pages served by github pages: the letter at `/`, the impact page at
-  `/impact/`, flyers, data sheets and the logo to print at `/resources/`, and
-  ways to help plus upcoming events at `/take-action/`. whatever is on `main` is
-  live within a minute or two.
+- static pages served by github pages: ways to help plus upcoming events at `/`,
+  the letter at `/letter/`, the impact page at `/impact/`, flyers, data sheets
+  and the logo to print at `/resources/`, and the community's statement on the
+  superintendent's final recommendation at `/response/`. whatever is on `main`
+  is live within a minute or two.
 - the letter lives in a google doc and gets converted to HTML w
   `tools/letter2html.py`.
 - signatures go to a google form owned by the PTSA and are never stored in this
@@ -36,5 +37,5 @@ on the site.
 npm install
 npm run dev      # local server with live reload
 npm run lint     # Oxlint
-npm run format   # Prettier (skips index.html; the letter markup is generated)
+npm run format   # Prettier (skips the letter and statement pages; their markup is generated)
 ```

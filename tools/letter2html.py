@@ -4,7 +4,7 @@
 How a content update works:
   1. In the Google Doc, File > Download > Web page (.html, zipped); unzip it.
   2. python3 -I tools/letter2html.py <export>.html <out_dir>
-  3. Paste out_dir/letter.html into index.html in place of the paragraphs and
+  3. Paste out_dir/letter.html into letter/index.html in place of the paragraphs and
      <h2>s from the salutation to .letter-close, and out_dir/references.html in
      place of the <ol class="references-list">. The reference count on the page
      is filled in by script.js from the list.
@@ -152,7 +152,7 @@ for runs in blocks:
     s = re.sub(r"\s+</strong>", "</strong> ", s)       # trailing space belongs outside the bold run
     s = s.replace("</strong>&nbsp;", "</strong> ")
     s = re.sub(r"\s+$", "", s)
-    if plain in ("Sincerely,", "[Signatures]"):         # the closing is hand-written in index.html
+    if plain in ("Sincerely,", "[Signatures]"):         # the closing is hand-written in letter/index.html
         continue
     letter_html.append(f"<p>{s}</p>")
 

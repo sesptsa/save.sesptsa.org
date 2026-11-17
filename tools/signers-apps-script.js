@@ -47,7 +47,7 @@
  *      columns to this tab.
  *   4. In Apps Script: Deploy > New deployment > Web app. Execute as: Me.
  *      Who has access: Anyone. Authorize, then copy the web app URL (ends in
- *      /exec) into the href of <link id="signers-feed"> in index.html.
+ *      /exec) into the href of <link id="signers-feed"> in letter/index.html.
  *   5. Open the URL in a browser to check the JSON.
  *   6. Optional: Signers > Tick Name ok on new signatures (authorize when
  *      asked). The trigger runs as whoever clicked it, so "Stop ticking new
@@ -61,7 +61,7 @@
  * Ticks show up on the site within FRESH_SECONDS. With auto-tick on, a new
  * signature rebuilds the feed, so it shows on the next page load.
  *
- * The take-action page's events are not served from here: they have their
+ * The home page's events are not served from here: they have their
  * own script on the committee's planning spreadsheet,
  * tools/events-apps-script.js.
  *

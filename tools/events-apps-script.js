@@ -1,7 +1,7 @@
 /**
  * Events feed for save.sesptsa.org: a Google Apps Script web app, bound to the
  * Advocacy committee's planning spreadsheet, that serves the events marked
- * for the website as JSON. The take-action page (take-action.js) fetches it
+ * for the website as JSON. The home page (take-action.js) fetches it
  * and fills in the "next event" card and the upcoming events list, so
  * volunteers keep the list current without a site deploy. Nothing here runs
  * on the site itself; this file is the source of the script, kept in the
@@ -57,7 +57,7 @@
  *      asked) to check the rows.
  *   3. In Apps Script: Deploy > New deployment > Web app. Execute as: Me.
  *      Who has access: Anyone. Copy the web app URL (ends in /exec) into the
- *      href of <link id="events-feed"> in take-action/index.html.
+ *      href of <link id="events-feed"> in index.html.
  *   4. Open the URL in a browser to check the JSON.
  * Updating the code later: paste it in, save, then Deploy > Manage deployments
  * > edit (pencil) > Version: New version > Deploy. That keeps the same URL;
