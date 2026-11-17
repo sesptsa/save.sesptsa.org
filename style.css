@@ -2573,6 +2573,9 @@ mark.sun {
 .statement {
   padding-top: var(--sp-4);
 }
+.statement-signed {
+  font-weight: 700;
+}
 .statement-notes h2 {
   font-size: 1rem;
 }
