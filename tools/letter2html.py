@@ -7,7 +7,7 @@ How a content update works:
   3. Paste out_dir/letter.html into letter/index.html in place of the paragraphs and
      <h2>s from the salutation to .letter-close, and out_dir/references.html in
      place of the <ol class="references-list">. The reference count on the page
-     is filled in by script.js from the list.
+     is filled in by letter.js from the list.
   4. Open the page: every citation marker must have a matching reference
      (the script asserts the counts match).
 

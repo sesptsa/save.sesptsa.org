@@ -5,17 +5,19 @@ served by GitHub Pages at https://save.sesptsa.org.
 
 ## Stack
 
-- Plain HTML/CSS plus four small vanilla scripts, no framework: `signers.js`
-  (shared: the feed fetch, the count, story cards), `script.js` (the letter page:
-  sticky bar, citation popovers/sheet, form-submit scroll, the signers list),
-  `impact.js` (the impact page's stories) and `take-action.js` (the home
-  page's events, key dates and copy button). Keep it that way.
+- Plain HTML/CSS plus five small vanilla scripts, no framework: `signers.js`
+  (shared: the feed fetch, the count, name rows and story cards, and the
+  embedded sign form's behaviour, `signForm()`), then one per page: `letter.js`
+  (citation popovers/sheet, the signers list), `impact.js` (the stories),
+  `take-action.js` (the home page's events, key dates, copy button and the
+  coalition card's signers) and `coalition.js` (the coalition letter's count
+  and signers). Keep it that way.
 - Pages serves the files exactly as committed. `package.json` holds dev tooling only
   (`npm run dev` = Vite dev server, `npm run lint` = Oxlint, `npm run format` =
   Prettier). **Never add a build script**: nothing may depend on a transform step,
-  so no imports that only Vite can resolve. Prettier skips `letter/index.html` and
-  `response/index.html` on purpose; the letter and statement markup there is
-  generated.
+  so no imports that only Vite can resolve. Prettier skips `letter/index.html`,
+  `response/index.html` and `coalition/index.html` on purpose; the letter and
+  statement markup there is generated.
 - GitHub Pages, "deploy from a branch" (`main`, root). Every push to `main` deploys
   in about a minute; the deploy shows under the Actions tab.
 - `.nojekyll` is present so Pages serves files as-is. Don't remove it.
@@ -25,16 +27,20 @@ served by GitHub Pages at https://save.sesptsa.org.
 
 ## Layout
 
-- Five pages: `/` (Take Action, the home page since Nov. 2026, when the campaign
+- Six pages: `/` (Take Action, the home page since Nov. 2026, when the campaign
   moved from collecting signatures to the board vote), `/letter/` (the letter and
-  signatures, the home page until then), `/impact/`, `/resources/` and
-  `/response/` (the community statement; not in the nav, linked from the home
-  page), with the same header, footer and tokens. `/take-action/` is a redirect
+  signatures, the home page until then), `/impact/`, `/resources/`,
+  `/response/` (the community statement) and `/coalition/` (the coalition
+  letter; neither is in the nav, both are linked from the home page), with the
+  same header, footer and tokens. The four nav pages have the statement strip
+  (`.statement-strip`) under their hero (under the
+  header on resources): the same markup on all four; add `is-hidden`, the
+  class that switches a block off, to hide it. `/take-action/` is a redirect
   to `/` (it is in messages already sent; it carries the `#hash` along), and
   `take-action.js` sends the letter's old anchors (`/#undersigned`, `/#ref-N`)
   on to `/letter/`; `/#sign` lands on the home page's sign step. The footer's three paragraphs (project of
   the PTSA, the disclaimer, questions/Instagram) are the Advocacy committee's
-  wording; change them on all five pages together. The header's nav (`.site-nav`) shows from 800px; below that each page
+  wording; change them on all six pages together. The header's nav (`.site-nav`) shows from 800px; below that each page
   has a `.page-tabs` row at the top of its hero. Mark the current page with
   `aria-current="page"` in both. Cross-page links are root-relative (`/letter/#sign`).
 - `letter/index.html` — the letter page: hero (no count or button since the
@@ -44,7 +50,7 @@ served by GitHub Pages at https://save.sesptsa.org.
   update steps); citation markers are `<sup class="cite">` linking to `#ref-N`, and
   the popovers and the reference count read from the references list.
 - `#undersigned` in `letter/index.html` — the signers section after the form,
-  filled by `script.js` from the JSON feed, whose URL is
+  filled by `letter.js` from the JSON feed, whose URL is
   the `<link rel="preload" id="signers-feed">` in `<head>` (preloaded because Apps
   Script takes 1–2 s). The section stays hidden until it loads. The impact page's
   bridge still shows the count: a floor ("3,500+") at once, then the visitor's
@@ -82,9 +88,10 @@ served by GitHub Pages at https://save.sesptsa.org.
   the 300px one. Styles: the "Resources page" block in `style.css`.
 - `index.html`, `take-action.js` — "Take Action", the home page: the hero (the ask and a card
   with the next event; its "Email the School Board" button and "Last updated"
-  line are commented out for now), a dark strip linking to the statement
-  (`.statement-strip`; add `is-hidden`, the class that switches a block
-  off, to hide it),
+  line are commented out for now), the statement strip, the coalition letter's
+  card (`.coalition-card`, on `--mint` with a green title; what it is, its
+  two links and, from the coalition feed, how many have signed, with the most
+  recent as chips from 860px; `is-hidden` switches it off),
   seven numbered steps (`.steps`; step 01 holds the officials table, step 05 the
   message to copy, step 07 is signing the letter), upcoming events, key dates on a dark band, the
   four "Why SES" reasons, resources. The hero card and the events list come from
@@ -119,7 +126,32 @@ served by GitHub Pages at https://save.sesptsa.org.
   it warns about placeholders still in the Doc). Note markers are
   `<sup class="cite">` linking to `#note-N`. Styles: the "Statement page" block
   in `style.css`.
-- `script.js`, `signers.js` — see above.
+- `coalition/index.html`, `coalition.js` — the coalition letter (Nov. 2026):
+  organizations and individuals sign on to it, separately from the community
+  letter. One column (`--measure`) throughout: the green hero (the title, and
+  a line saying how many have signed), the letter (`.letter.co-letter`; a
+  paragraph that is bold throughout in the Doc is a pull-out, `.pull`),
+  "Signed by" under it (`#signers`, before the form on purpose), then the
+  sign-on form on cream (`#sign`, under its heading at every width).
+  The letter's paragraphs are generated from its Google Doc by
+  `tools/coalition2html.py` (its docstring has the update steps); the title,
+  salutation and closing are typed by hand. The names come from the coalition
+  feed (the `coalition-feed` preload on this page and the home page): a third
+  Apps Script, on the sign-on form's responses spreadsheet
+  (`tools/coalition-apps-script.js`). It serves only rows a volunteer has
+  ticked "Show on site", names as typed, and never the email column. Until a
+  name is approved (or if the feed fails) "Signed by" stays hidden and the
+  hero invites sign-ons instead of counting; the line's space is kept either
+  way, so nothing moves. The form's frame heights are measured signed in to
+  Google, the taller case (see the comment in `style.css`); its theme colour
+  is set to `--green` in Google Forms. Styles: the "Coalition letter" block in
+  `style.css`.
+- `letter.js`, `signers.js` — see above.
+- `tools/` — the three Apps Script sources (signers, events, coalition; each
+  is pasted into its own spreadsheet's script editor) and the three Doc
+  converters. `statement2html.py` and `coalition2html.py` share `gdoc.py` (the
+  reader for a Google Docs HTML export); `letter2html.py` predates it and has
+  its own.
 - `package.json`, `.oxlintrc.json`, `.prettierrc`, `.prettierignore` — dev tooling only.
 - `style.css` — tokens at the top. `--green: #007108` is August's artwork green;
   everything green on the page uses it.

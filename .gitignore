@@ -2,3 +2,4 @@
 Thumbs.db
 CLAUDE.local.md
 node_modules/
+__pycache__/

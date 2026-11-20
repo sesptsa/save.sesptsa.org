@@ -2,7 +2,7 @@
  * Signers feed for save.sesptsa.org: a Google Apps Script web app, bound to the
  * signature form's responses spreadsheet, that serves the names and stories PTSA
  * volunteers have approved as JSON, plus the total number of signatures. The
- * page (script.js) fetches it and fills in "The undersigned" and the hero's
+ * page (letter.js) fetches it and fills in "The undersigned" and the hero's
  * count. Nothing here runs on the site itself; this file is the source of the
  * script, kept in the repo so it isn't lost in a Google account.
  *

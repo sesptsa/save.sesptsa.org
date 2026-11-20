@@ -1,6 +1,7 @@
-# These hold generated text (the letter, the statement); reformatting them would
-# churn every content update.
+# These hold generated text (the letter, the statement, the coalition letter);
+# reformatting them would churn every content update.
 /letter/index.html
 /response/index.html
+/coalition/index.html
 package-lock.json
 assets/

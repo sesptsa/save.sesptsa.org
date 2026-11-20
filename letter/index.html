@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="../style.css">
   <!-- The signers feed (tools/signers-apps-script.js). Apps Script takes a second
        or more to answer, so the request starts here, while the page loads;
-       script.js picks it up by this id. -->
+       letter.js picks it up by this id. -->
   <link rel="preload" id="signers-feed" href="https://script.google.com/macros/s/AKfycbwg4P6pawlo5aMSITj7oFOV_Tt8ZWZUgIP8wA8VgB1C7SmMHEt-LmYx2IngZb3M070/exec" as="fetch" crossorigin>
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 </head>
@@ -55,6 +55,17 @@
           <h1 class="display">Keep Sunnyside <span class="nowrap">K–8</span> and environmental</h1>
           <p class="lede">Sunnyside Environmental School is one of only 12 schools in PPS with growing enrollment, but the District wants to dismantle what makes us thrive: our K-8 setting and environmental focus option curriculum.</p>
         </div>
+      </div>
+    </section>
+
+    <!-- The community statement (response/index.html); the same strip is on
+         every page. Add the class "is-hidden" to switch it off. -->
+    <section class="statement-strip" aria-labelledby="statement-title">
+      <div class="wide statement-strip-inner">
+        <h2 id="statement-title">
+          Read our community statement on the Superintendent&rsquo;s final recommendation.
+        </h2>
+        <a class="button" href="/response/">Read the Statement</a>
       </div>
     </section>
 
@@ -146,7 +157,7 @@
       </div>
     </section>
 
-    <!-- Filled by script.js from the signers feed (see the preload in <head>);
+    <!-- Filled by letter.js from the signers feed (see the preload in <head>);
          stays hidden until the feed loads. -->
     <section class="undersigned" id="undersigned" aria-labelledby="undersigned-title" hidden>
       <div class="col undersigned-inner">
@@ -210,6 +221,6 @@
   </svg>
 
   <script src="../signers.js"></script>
-  <script src="../script.js"></script>
+  <script src="../letter.js"></script>
 </body>
 </html>

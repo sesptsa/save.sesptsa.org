@@ -15,106 +15,19 @@ How a content update works:
 The Doc is: a bold title (hand-written in the page, so skipped here), the
 paragraphs, a bold "Notes" line with a numbered list, a bold "References" line
 with one source per paragraph. Note markers are typed as "[1]" in the text.
-Bold, italic and links are read from the export's own styles.
+Bold, italic and links are read from the export's own styles (gdoc.py, which
+the coalition letter's converter shares).
 """
-import html
 import re
 import sys
-import urllib.parse
 from pathlib import Path
 
-src = Path(sys.argv[1]).read_text(encoding="utf-8")
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # gdoc.py, beside this file
+from gdoc import plain, read, render, warn_placeholders
+
 out = Path(sys.argv[2])
 out.mkdir(parents=True, exist_ok=True)
-
-style = re.search(r"<style.*?</style>", src, re.S).group(0)
-classes = {m.group(1): m.group(2) for m in re.finditer(r"\.(c\d+)\{([^}]*)\}", style)}
-BOLD = {c for c, d in classes.items() if "font-weight:700" in d}
-ITALIC = {c for c, d in classes.items() if "font-style:italic" in d}
-
-body = src.split("<body", 1)[1]
-BR = "\x00"
-
-
-def runs_of(inner):
-    """Yield (text, bold, italic, url) runs from one exported <p> or <li>;
-    text is plain (unescaped), with BR for a line break."""
-    bold = italic = False
-    url = None
-    for m in re.finditer(r"<span(?: class=\"([^\"]*)\")?[^>]*>|</span>|<a [^>]*href=\"([^\"]*)\"[^>]*>|</a>|<br>|<[^>]+>|([^<]+)", inner):
-        tag = m.group(0)
-        if tag.startswith("<span"):
-            cls = set((m.group(1) or "").split())
-            bold, italic = bool(cls & BOLD), bool(cls & ITALIC)
-        elif tag == "</span>":
-            bold = italic = False
-        elif tag.startswith("<a "):
-            # Docs wraps links in a google.com/url?q= redirect.
-            url = html.unescape(m.group(2))
-            q = urllib.parse.parse_qs(urllib.parse.urlparse(url).query).get("q")
-            url = q[0] if q and "google.com/url" in url else url
-        elif tag == "</a>":
-            url = None
-        elif tag == "<br>":
-            yield (BR, False, False, None)
-        elif m.group(3):
-            yield (html.unescape(m.group(3)).replace("\xa0", " "), bold, italic, url)
-
-
-def render(runs, link_text=None):
-    """Inline HTML for a list of runs. Adjacent runs with the same styling are
-    joined first (the Doc splits them wherever it was edited)."""
-    merged = []
-    for text, bold, italic, url in runs:
-        if not text.strip():
-            bold, italic = (merged[-1][1], merged[-1][2]) if merged else (False, False)
-        if merged and merged[-1][1:] == (bold, italic, url):
-            merged[-1] = (merged[-1][0] + text, bold, italic, url)
-        else:
-            merged.append((text, bold, italic, url))
-    parts = []
-    for text, bold, italic, url in merged:
-        if not text.strip():
-            parts.append(" " if text else "")
-            continue
-        lead = " " if text[0].isspace() else ""
-        trail = " " if text[-1].isspace() else ""
-        s = html.escape(text.strip(), quote=False)
-        # A straight apostrophe typed in the Doc ("It's", "students'") becomes the curly one.
-        s = re.sub(r"(?<=\w)'", "\u2019", s)
-        # "... not evidence based [1], harms" -> a superscript link to the note.
-        s = re.sub(r"\s*\[(\d+)\]", r'<sup class="cite" id="cite-\1"><a href="#note-\1">\1</a></sup>', s)
-        if italic:
-            s = f"<em>{s}</em>"
-        if bold:
-            s = f"<strong>{s}</strong>"
-        if url:
-            s = f'<a href="{html.escape(url)}" target="_blank" rel="noopener">{s}</a>'
-        parts.append(lead + s + trail)
-    s = "".join(parts)
-    s = re.sub(r"\s+", " ", s).strip()
-    s = re.sub(r" (<sup class=\"cite\")", r"\1", s)
-    s = re.sub(r" ([.,;:])", r"\1", s)  # a space the Doc left before punctuation
-    return s
-
-
-def plain(runs):
-    return re.sub(r"\s+", " ", "".join(r[0] for r in runs)).strip()
-
-
-# The blocks in order: ("p", runs) or ("li", runs); a <br> inside a paragraph
-# starts a new one.
-blocks = []
-for m in re.finditer(r"<(p|li)\b[^>]*>(.*?)</\1>", body, re.S):
-    cur = []
-    for run in runs_of(m.group(2)):
-        if run[0] == BR:
-            blocks.append((m.group(1), cur))
-            cur = []
-        else:
-            cur.append(run)
-    blocks.append((m.group(1), cur))
-blocks = [(kind, runs) for kind, runs in blocks if plain(runs)]
+blocks = [(kind, runs) for kind, runs in read(sys.argv[1]) if kind in ("p", "li")]
 
 names = [plain(runs) for _, runs in blocks]
 notes_at, refs_at = names.index("Notes"), names.index("References")
@@ -156,6 +69,4 @@ assert marks == list(range(1, len(notes) + 1)), (marks, len(notes))
 
 print(f"title: {title}")
 print(f"{len(statement)} paragraphs, {len(notes)} notes, {len(refs)} references -> {out}/")
-for s in statement + notes + refs:
-    for m in re.finditer(r"\[(?:Signatory|Date|Title|TK|TBD)[^\]]*\]", s):
-        print(f"WARNING: placeholder still in the Doc: {m.group(0)}", file=sys.stderr)
+warn_placeholders(statement + notes + refs, sys.stderr)

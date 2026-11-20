@@ -1,10 +1,11 @@
-// Save Sunnyside — the signers feed, shared by the letter page (script.js) and
-// the impact page (impact.js): fetching it, the running count, and the story
-// cards. The take-action page (take-action.js) uses the fetch and the helpers
-// for its events feed, which has its own Apps Script. Loaded before each
-// page script; it defines window.SaveSES and nothing else. Everything in the
-// feeds is text typed by the public or by volunteers, so it only ever goes into
-// the page via textContent.
+// Save Sunnyside — what the page scripts share: fetching a feed (the signers
+// feed for letter.js and impact.js, the coalition letter's for coalition.js
+// and take-action.js, the events feed for take-action.js; each has its own
+// Apps Script), the running count, the name rows and story cards, and the
+// embedded sign form's behaviour. Loaded before each page script; it defines
+// window.SaveSES and nothing else. Everything in the feeds is text typed by
+// the public or by volunteers, so it only ever goes into the page via
+// textContent.
 window.SaveSES = (function () {
   "use strict";
 
@@ -28,9 +29,9 @@ window.SaveSES = (function () {
   // serving the count plus only the names and stories PTSA volunteers have
   // approved. It takes a second or more, so each page preloads it from <head>
   // (<link rel="preload" id="signers-feed">); fetching the same URL with the
-  // same CORS mode reuses that request. The take-action page loads its
-  // events feed (tools/events-apps-script.js) the same way, from the preload
-  // with the id it passes.
+  // same CORS mode reuses that request. The other feeds (the coalition
+  // letter's signers, the events) load the same way, from the preload with
+  // the id passed.
   function loadFeed(id) {
     var link = document.getElementById(id || "signers-feed");
     if (!link) return Promise.reject(new Error("Feed: no preload link"));
@@ -152,6 +153,44 @@ window.SaveSES = (function () {
     return shuffle(featured).concat(rest);
   }
 
+  // The embedded Google Form (a page's #sign section) and the header button
+  // that leads to it.
+  function signForm() {
+    var header = document.querySelector(".site-header");
+    var sign = document.getElementById("sign");
+    var frame = sign.querySelector(".form-frame");
+    var iframe = frame.querySelector("iframe");
+
+    // Hide the header's button while the form is already on screen.
+    new IntersectionObserver(
+      function (entries) {
+        header.classList.toggle("form-visible", entries[0].isIntersecting);
+      },
+      { rootMargin: "-20% 0px 0px 0px" }, // "on screen" once a fifth of the viewport is past its top
+    ).observe(sign);
+
+    // The form loads lazily, so start fetching as soon as someone heads for it.
+    document.querySelectorAll('a[href="#sign"]').forEach(function (a) {
+      a.addEventListener("click", function () {
+        iframe.loading = "eager";
+      });
+    });
+
+    // Submitting reloads the frame once (observed behaviour of Google Forms;
+    // "Submit another response" reloads it again). Shrink it to the
+    // confirmation and bring that into view instead of leaving a tall blank frame.
+    var loads = 0;
+    iframe.addEventListener("load", function () {
+      loads += 1;
+      if (loads === 2) {
+        frame.classList.add("is-submitted");
+        sign.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (loads > 2) {
+        frame.classList.remove("is-submitted");
+      }
+    });
+  }
+
   return {
     el: el,
     format: format,
@@ -165,5 +204,6 @@ window.SaveSES = (function () {
     focusItem: focusItem,
     shuffle: shuffle,
     storiesFeaturedFirst: storiesFeaturedFirst,
+    signForm: signForm,
   };
 })();

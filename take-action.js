@@ -1,9 +1,11 @@
 // Save Sunnyside — the home page (Take Action): the next event in the hero and the
 // upcoming events list, both from the events feed (signers.js fetches it: an
-// Apps Script on the committee's planning spreadsheet), the "we are here"
+// Apps Script on the committee's planning spreadsheet), who has signed the
+// coalition letter in its card (the coalition feed), the "we are here"
 // marker in the key dates, and the Copy Message button. Everything is
-// progressive: without it the hero shows the vote, the dates show without a
-// marker, and the message is there to select by hand.
+// progressive: without it the hero shows the vote, the card just links to
+// the coalition letter, the dates show without a marker, and the message is
+// there to select by hand.
 (function () {
   "use strict";
 
@@ -163,6 +165,38 @@
       );
     });
     button.hidden = false;
+  })();
+
+  /* ---- The coalition letter's card: who has signed ----------------------- */
+  // From the coalition feed (the sign-on form's responses; see
+  // tools/coalition-apps-script.js): how many, and the most recent few as
+  // chips where there is room for them (from 860px, in the CSS). The line's
+  // space is kept, so nothing moves when it arrives.
+  (function coalitionSigned() {
+    var box = document.querySelector(".coalition-signed");
+    var shown = 8;
+    S.loadFeed("coalition-feed")
+      .then(function (feed) {
+        var names = (feed && feed.names) || [];
+        if (!names.length) return;
+        box.querySelector("strong").textContent = S.format(names.length);
+        box.querySelector(".has-signed").textContent =
+          names.length === 1 ? " has signed" : " have signed";
+        var chips = S.fillList(box.querySelector(".chips"), names.slice(0, shown), function (s) {
+          return S.el("li", "chip", s.name);
+        });
+        if (names.length > shown) {
+          var more = S.el("a", "", "+ " + S.format(names.length - shown) + " more");
+          more.href = "/coalition/#signers";
+          var li = S.el("li", "chip chip-more");
+          li.append(more);
+          chips[chips.length - 1].after(li);
+        }
+        box.classList.add("is-ready");
+      })
+      .catch(function (err) {
+        console.warn(err);
+      });
   })();
 
   /* ---- Events: the hero card and the list ------------------------------- */

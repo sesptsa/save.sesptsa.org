@@ -1,25 +1,19 @@
-// Save Sunnyside — the little bit of behaviour the letter page needs (signers.js,
-// loaded first, holds what the impact page shares). Everything here is
+// Save Sunnyside — the letter page (/letter/): the references and citation
+// popovers, and the signers list (signers.js, loaded first, holds what the
+// other pages share, the sign form's behaviour included). Everything here is
 // progressive: without it the citations are plain anchor links into the
 // references list and the page still reads and signs fine.
 (function () {
   "use strict";
 
-  var header = document.querySelector(".site-header");
+  var S = window.SaveSES;
   var letter = document.querySelector(".letter");
-  var sign = document.getElementById("sign");
   var refsDetails = document.querySelector(".references");
   var refItems = document.querySelectorAll(".references-list li");
   // Same breakpoint as the side-by-side layout in style.css; keep them together.
   var desktop = window.matchMedia("(min-width: 1200px) and (hover: hover)");
 
-  /* ---- Header: hide its "Add my name" while the form is already on screen. */
-  new IntersectionObserver(
-    function (entries) {
-      header.classList.toggle("form-visible", entries[0].isIntersecting);
-    },
-    { rootMargin: "-20% 0px 0px 0px" }, // "on screen" once a fifth of the viewport is past its top
-  ).observe(sign);
+  S.signForm();
 
   /* ---- References list: the count comes from the list itself; open by
           default on desktop, when printing, and when a link points at it. */
@@ -149,36 +143,10 @@
   });
   desktop.addEventListener("change", close);
 
-  /* ---- The embedded form ---------------------------------------------- */
-  var frame = document.querySelector(".form-frame");
-  var iframe = frame.querySelector("iframe");
-
-  // It loads lazily, so start fetching as soon as someone heads for it.
-  document.querySelectorAll('a[href="#sign"]').forEach(function (a) {
-    a.addEventListener("click", function () {
-      iframe.loading = "eager";
-    });
-  });
-
-  // Submitting reloads the frame once (observed behaviour of Google Forms;
-  // "Submit another response" reloads it again). Shrink it to the
-  // confirmation and bring that into view instead of leaving a tall blank frame.
-  var loads = 0;
-  iframe.addEventListener("load", function () {
-    loads += 1;
-    if (loads === 2) {
-      frame.classList.add("is-submitted");
-      sign.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else if (loads > 2) {
-      frame.classList.remove("is-submitted");
-    }
-  });
-
   /* ---- The undersigned ------------------------------------------------ */
   // The feed (signers.js) serves the count plus only the names and stories
   // PTSA volunteers have approved. It takes a second or more, so the section
   // stays hidden until it loads.
-  var S = window.SaveSES;
   var undersigned = document.getElementById("undersigned");
   var wide = window.matchMedia("(min-width: 560px)").matches;
 
